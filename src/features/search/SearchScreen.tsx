@@ -299,7 +299,7 @@ const makeStyles = (c: Palette) =>
     metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
     typeLine: { color: c.text },
     cardMeta: { color: c.textSubtle },
-    tile: { flex: 1, padding: spacing.xs },
+    tile: { padding: spacing.xs },
     // Card corners are ~4.7% of the width; radii.md is close at two-column size.
     tileImage: { width: '100%', aspectRatio: CARD_ASPECT, borderRadius: radii.md, backgroundColor: c.surface },
     tilePlaceholder: { alignItems: 'center', justifyContent: 'center', padding: spacing.sm },
