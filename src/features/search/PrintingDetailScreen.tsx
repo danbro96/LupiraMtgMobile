@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,7 +18,7 @@ type Route = RouteProp<MtgStackParamList, 'PrintingDetail'>;
 export function PrintingDetailScreen() {
   const { params } = useRoute<Route>();
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
   const { data, isLoading, isError, error } =
     useGetPrinting(params.oracleId, params.printingId);
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -79,7 +79,7 @@ export function LoginScreen() {
   const [savingApi, setSavingApi] = useState(false);
   const apiDirty = apiInput.trim() !== mtgApiUrl;
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   async function handleSignIn() {
     setError(null);

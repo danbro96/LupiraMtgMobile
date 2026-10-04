@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
 import {
   AppState,
   AppStateStatus,
@@ -67,7 +67,7 @@ export function ScanScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const c = useColors();
-  const themed = useMemo(() => makeStyles(c), [c]);
+  const themed = makeStyles(c);
   const confirm = useConfirm();
   const isFocused = useIsFocused();
   const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
@@ -84,24 +84,17 @@ export function ScanScreen() {
   // `useCameraDevice('back', { physicalDevices: ['wide-angle'] })` returned a logical
   // multicam on Galaxy S23 that reported supportsFocusMetering:false.
   const allDevices = useCameraDevices();
-  const deviceCandidates = useMemo(
-    () =>
-      allDevices
-        .filter((d) => d.position === 'back')
-        .map((d) => ({
-          device: d,
-          isPhysicalWide: d.type === 'wide-angle' && !d.isVirtualDevice,
-          hasAF: d.supportsFocusMetering,
-        })),
-    [allDevices],
-  );
-  const device = useMemo(() => {
-    const wideAF = deviceCandidates.find((c) => c.isPhysicalWide && c.hasAF);
-    if (wideAF) return wideAF.device;
-    const anyAF = deviceCandidates.find((c) => c.hasAF);
-    if (anyAF) return anyAF.device;
-    return deviceCandidates[0]?.device;
-  }, [deviceCandidates]);
+  const deviceCandidates = allDevices
+    .filter((d) => d.position === 'back')
+    .map((d) => ({
+      device: d,
+      isPhysicalWide: d.type === 'wide-angle' && !d.isVirtualDevice,
+      hasAF: d.supportsFocusMetering,
+    }));
+  const device =
+    deviceCandidates.find((d) => d.isPhysicalWide && d.hasAF)?.device ??
+    deviceCandidates.find((d) => d.hasAF)?.device ??
+    deviceCandidates[0]?.device;
   useEffect(() => {
     if (!device) return;
     traceScan('camera', 'device selected', {
@@ -145,48 +138,36 @@ export function ScanScreen() {
   });
 
   const [banner, setBanner] = useState<ScanBannerState | null>(null);
-  const showBanner = useCallback((b: Omit<ScanBannerState, 'nonce'>) => {
+  const showBanner = (b: Omit<ScanBannerState, 'nonce'>) => {
     setBanner((prev) => ({ ...b, nonce: (prev?.nonce ?? 0) + 1 }));
-  }, []);
-  const hideBanner = useCallback(() => setBanner(null), []);
+  };
+  const hideBanner = () => setBanner(null);
   const [flashKey, setFlashKey] = useState(0);
 
-  const invalidateSelection = useCallback(
-    () => void queryClient.invalidateQueries({ queryKey: ['selection'] }),
-    [queryClient],
-  );
+  const invalidateSelection = () => void queryClient.invalidateQueries({ queryKey: ['selection'] });
 
-  const addCandidate = useCallback(
-    async (id: CaptureId, candidate: CardCandidateDto, allowDuplicate: boolean) => {
-      const selectionId = await ensureSelectionRef.current();
-      const entry = await addEntry(selectionId, candidate.printing.id, DEFAULT_ATTRIBUTES, {
-        confidence: candidate.combinedScore,
-        allowDuplicate,
-      });
-      dispatch({ type: 'capture/added', id, added: { printingId: candidate.printing.id, instanceId: entry.instanceId } });
+  const addCandidate = async (id: CaptureId, candidate: CardCandidateDto, allowDuplicate: boolean) => {
+    const selectionId = await ensureSelectionRef.current();
+    const entry = await addEntry(selectionId, candidate.printing.id, DEFAULT_ATTRIBUTES, {
+      confidence: candidate.combinedScore,
+      allowDuplicate,
+    });
+    dispatch({ type: 'capture/added', id, added: { printingId: candidate.printing.id, instanceId: entry.instanceId } });
+    invalidateSelection();
+    return { selectionId, instanceId: entry.instanceId };
+  };
+
+  const undoAdd = async (id: CaptureId, selectionId: string, instanceId: string) => {
+    try {
+      await removeEntries(selectionId, [instanceId]);
+      dispatch({ type: 'capture/unadded', id });
       invalidateSelection();
-      return { selectionId, instanceId: entry.instanceId };
-    },
-    [invalidateSelection],
-  );
+    } catch (err: unknown) {
+      toastError((err as Error).message);
+    }
+  };
 
-  const undoAdd = useCallback(
-    async (id: CaptureId, selectionId: string, instanceId: string) => {
-      try {
-        await removeEntries(selectionId, [instanceId]);
-        dispatch({ type: 'capture/unadded', id });
-        invalidateSelection();
-      } catch (err: unknown) {
-        toastError((err as Error).message);
-      }
-    },
-    [invalidateSelection],
-  );
-
-  const autoAdd = useCallback(
-    (id: CaptureId, top: CardCandidateDto) => autoAddCandidate(id, top, { addCandidate, undoAdd, showBanner }),
-    [addCandidate, showBanner, undoAdd],
-  );
+  const autoAdd = (id: CaptureId, top: CardCandidateDto) => autoAddCandidate(id, top, { addCandidate, undoAdd, showBanner });
 
   const appendDecisionLog = useDecisionLog((s) => s.append);
 
@@ -201,82 +182,70 @@ export function ScanScreen() {
   const uploadChain = useRef<Promise<void>>(Promise.resolve());
   const uploadsPending = useRef(0);
 
-  const upload = useCallback(
-    (id: CaptureId, captureUri: string, queuedAt: number) =>
-      uploadCapture(id, captureUri, queuedAt, { dispatch, autoAdd }),
-    [autoAdd],
-  );
+  const upload = (id: CaptureId, captureUri: string, queuedAt: number) =>
+    uploadCapture(id, captureUri, queuedAt, { dispatch, autoAdd });
 
-  const enqueueUpload = useCallback(
-    async (id: CaptureId, captureUri: string) => {
-      const queuedAt = Date.now();
-      const ahead = uploadsPending.current++;
-      traceScan('upload', ahead > 0 ? `queued behind ${ahead}` : 'POST /scans', { captureId: id, level: 'debug' });
-      const run = uploadChain.current.then(() => upload(id, captureUri, queuedAt));
-      uploadChain.current = run;
-      await run;
-      uploadsPending.current--;
-    },
-    [upload],
-  );
+  const enqueueUpload = async (id: CaptureId, captureUri: string) => {
+    const queuedAt = Date.now();
+    const ahead = uploadsPending.current++;
+    traceScan('upload', ahead > 0 ? `queued behind ${ahead}` : 'POST /scans', { captureId: id, level: 'debug' });
+    const run = uploadChain.current.then(() => upload(id, captureUri, queuedAt));
+    uploadChain.current = run;
+    await run;
+    uploadsPending.current--;
+  };
 
-  const captureAndScan = useCallback(
-    async (captureUri: string, quad: Quad, frameSize: FrameSize, diag: CaptureDiagnostics) => {
-      const id: CaptureId = newCaptureId();
-      const m = diag.metrics;
-      appendDecisionLog(
-        buildLogEntry(m, { kind: 'fired', quadCentroid: { x: (quad[0].x + quad[2].x) / 2, y: (quad[0].y + quad[2].y) / 2 } }),
-      );
-      const s = useScanSettings.getState();
-      traceScan('fire', 'auto-capture fired', {
+  const captureAndScan = async (captureUri: string, quad: Quad, frameSize: FrameSize, diag: CaptureDiagnostics) => {
+    const id: CaptureId = newCaptureId();
+    const m = diag.metrics;
+    appendDecisionLog(
+      buildLogEntry(m, { kind: 'fired', quadCentroid: { x: (quad[0].x + quad[2].x) / 2, y: (quad[0].y + quad[2].y) / 2 } }),
+    );
+    const s = useScanSettings.getState();
+    traceScan('fire', 'auto-capture fired', {
+      captureId: id,
+      data: {
+        score: m.score,
+        stability: m.stability,
+        sharpness: m.sharpness,
+        sharpnessRaw: diag.sharpnessRaw,
+        coverage: m.coverage,
+        brightness: m.brightness,
+        stableFrames: diag.stableFrames,
+        fps: m.detectionFps,
+        frame: `${frameSize.width}x${frameSize.height}`,
+        buffer: `${diag.bufferSize.width}x${diag.bufferSize.height}`,
+        roi: diag.roi,
+        bufferQuad: diag.bufferQuad.map((p) => [Math.round(p.x), Math.round(p.y)]),
+        orientation: m.orientation,
+        mirrored: m.isMirrored,
+        threshold: s.captureThreshold,
+        minStableFrames: s.minStableFrames,
+        weights: [s.weightStability, s.weightSharpness, s.weightCoverage, s.weightBrightness],
+      },
+    });
+
+    // Empty URI = worklet's warp/save step failed. Don't surface a tile, let the next stable frame retry.
+    if (!captureUri) {
+      traceScan('crop', 'warp/encode failed', {
         captureId: id,
-        data: {
-          score: m.score,
-          stability: m.stability,
-          sharpness: m.sharpness,
-          sharpnessRaw: diag.sharpnessRaw,
-          coverage: m.coverage,
-          brightness: m.brightness,
-          stableFrames: diag.stableFrames,
-          fps: m.detectionFps,
-          frame: `${frameSize.width}x${frameSize.height}`,
-          buffer: `${diag.bufferSize.width}x${diag.bufferSize.height}`,
-          roi: diag.roi,
-          bufferQuad: diag.bufferQuad.map((p) => [Math.round(p.x), Math.round(p.y)]),
-          orientation: m.orientation,
-          mirrored: m.isMirrored,
-          threshold: s.captureThreshold,
-          minStableFrames: s.minStableFrames,
-          weights: [s.weightStability, s.weightSharpness, s.weightCoverage, s.weightBrightness],
-        },
+        level: 'error',
+        data: { error: diag.error, warpMs: diag.warpMs },
       });
+      return;
+    }
 
-      // Empty URI = worklet's warp/save step failed. Don't surface a tile, let the next stable frame retry.
-      if (!captureUri) {
-        traceScan('crop', 'warp/encode failed', {
-          captureId: id,
-          level: 'error',
-          data: { error: diag.error, warpMs: diag.warpMs },
-        });
-        return;
-      }
+    logCropFile(id, captureUri, diag.warpMs);
+    dispatch({ type: 'capture/add', id, createdAt: Date.now(), uri: captureUri });
+    setFlashKey((k) => k + 1);
+    hapticImpact(ImpactFeedbackStyle.Light);
 
-      logCropFile(id, captureUri, diag.warpMs);
-      dispatch({ type: 'capture/add', id, createdAt: Date.now(), uri: captureUri });
-      setFlashKey((k) => k + 1);
-      hapticImpact(ImpactFeedbackStyle.Light);
+    await enqueueUpload(id, captureUri);
+  };
 
-      await enqueueUpload(id, captureUri);
-    },
-    [appendDecisionLog, enqueueUpload],
-  );
-
-  const onAutoCapture = useCallback(
-    (captureUri: string, quad: Quad, frameSize: FrameSize, diag: CaptureDiagnostics) => {
-      void captureAndScan(captureUri, quad, frameSize, diag);
-    },
-    [captureAndScan],
-  );
+  const onAutoCapture = (captureUri: string, quad: Quad, frameSize: FrameSize, diag: CaptureDiagnostics) => {
+    void captureAndScan(captureUri, quad, frameSize, diag);
+  };
 
   const detection = useCardDetection({
     enabled: hasPermission && settings.loaded,
@@ -367,7 +336,7 @@ export function ScanScreen() {
     if (first) setReviewing({ id: first.id, queue: true });
   };
 
-  const finishReview = useCallback((doneId: CaptureId) => {
+  const finishReview = (doneId: CaptureId) => {
     setReviewing((current) => {
       if (!current?.queue) return null;
       const next = recordsRef.current
@@ -375,40 +344,34 @@ export function ScanScreen() {
         .sort((a, b) => a.createdAt - b.createdAt)[0];
       return next ? { id: next.id, queue: true } : null;
     });
-  }, []);
+  };
 
-  const onPick = useCallback(
-    (record: CaptureRecord, candidate: CardCandidateDto) =>
-      pickCandidate(record, candidate, {
-        ensureSelectionRef,
-        selectionCardsRef,
-        addCandidate,
-        confirm,
-        dispatch,
-        finishReview,
-        invalidateSelection,
-        setPickPending,
-      }),
-    [addCandidate, confirm, finishReview, invalidateSelection],
-  );
+  const onPick = (record: CaptureRecord, candidate: CardCandidateDto) =>
+    pickCandidate(record, candidate, {
+      ensureSelectionRef,
+      selectionCardsRef,
+      addCandidate,
+      confirm,
+      dispatch,
+      finishReview,
+      invalidateSelection,
+      setPickPending,
+    });
 
-  const onDiscard = useCallback(
-    async (record: CaptureRecord) => {
-      const added = record.state.kind === 'recognised' ? record.state.added : undefined;
-      if (added) {
-        try {
-          await removeEntries(await ensureSelectionRef.current(), [added.instanceId]);
-          invalidateSelection();
-        } catch (err: unknown) {
-          toastError((err as Error).message);
-          return;
-        }
+  const onDiscard = async (record: CaptureRecord) => {
+    const added = record.state.kind === 'recognised' ? record.state.added : undefined;
+    if (added) {
+      try {
+        await removeEntries(await ensureSelectionRef.current(), [added.instanceId]);
+        invalidateSelection();
+      } catch (err: unknown) {
+        toastError((err as Error).message);
+        return;
       }
-      finishReview(record.id);
-      dispatch({ type: 'capture/dismiss', id: record.id });
-    },
-    [finishReview, invalidateSelection],
-  );
+    }
+    finishReview(record.id);
+    dispatch({ type: 'capture/dismiss', id: record.id });
+  };
 
   const onSearchManually = (record: CaptureRecord) => {
     if (record.state.kind !== 'recognised') return;
@@ -429,27 +392,24 @@ export function ScanScreen() {
     navigation.setParams({ manualMatch: undefined });
   }, [manualMatch, navigation]);
 
-  const onRetry = useCallback(
-    (id: CaptureId) => {
-      const record = recordsRef.current.find((r) => r.id === id);
-      if (record?.state.kind !== 'error' || !record.state.uri) return;
-      traceScan('upload', 'retry', { captureId: id });
-      dispatch({ type: 'capture/retry', id });
-      void enqueueUpload(id, record.state.uri);
-    },
-    [enqueueUpload],
-  );
-  const onDismissTile = useCallback((id: CaptureId) => {
+  const onRetry = (id: CaptureId) => {
+    const record = recordsRef.current.find((r) => r.id === id);
+    if (record?.state.kind !== 'error' || !record.state.uri) return;
+    traceScan('upload', 'retry', { captureId: id });
+    dispatch({ type: 'capture/retry', id });
+    void enqueueUpload(id, record.state.uri);
+  };
+  const onDismissTile = (id: CaptureId) => {
     dispatch({ type: 'capture/dismiss', id });
-  }, []);
+  };
 
   const selectionCount = selectionQuery.data?.cards.length ?? 0;
   const goToSelection = () => navigation.navigate('Selection');
 
-  const onCameraLayout = useCallback((e: LayoutChangeEvent) => {
+  const onCameraLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
     setContainerSize({ width, height });
-  }, []);
+  };
 
   const showDebug = settings.showDebugOverlay;
 

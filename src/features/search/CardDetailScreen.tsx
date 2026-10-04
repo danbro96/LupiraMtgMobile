@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
@@ -29,7 +29,7 @@ export function CardDetailScreen() {
   const { params } = useRoute<Route>();
   const navigation = useNavigation<Nav>();
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   const cardQuery = useGetCard(params.oracleId);
   const printingsQuery = useListPrintings(params.oracleId);
@@ -37,15 +37,12 @@ export function CardDetailScreen() {
   const card = cardQuery.data;
   const printings = printingsQuery.data ?? [];
 
-  const renderPrinting = useCallback<ListRenderItem<CardPrintingDto>>(
-    ({ item }) => (
-      <PrintingTile
-        printing={item}
-        styles={styles}
-        onPress={() => navigation.navigate('PrintingDetail', { oracleId: params.oracleId, printingId: item.id })}
-      />
-    ),
-    [styles, navigation, params.oracleId],
+  const renderPrinting: ListRenderItem<CardPrintingDto> = ({ item }) => (
+    <PrintingTile
+      printing={item}
+      styles={styles}
+      onPress={() => navigation.navigate('PrintingDetail', { oracleId: params.oracleId, printingId: item.id })}
+    />
   );
 
   return (

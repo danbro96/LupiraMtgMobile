@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Searchbar, Text } from 'react-native-paper';
 import { Image } from 'expo-image';
@@ -32,7 +32,7 @@ export function PrintingPickerScreen() {
   const navigation = useNavigation<Nav>();
   const { params } = useRoute<Route>();
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
   const queryClient = useQueryClient();
   const { ensure } = useCurrentSelection();
 

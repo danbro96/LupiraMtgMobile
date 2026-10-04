@@ -30,7 +30,7 @@ export function PickCollectionScreen() {
   const lastCollectionId = useSelection(s => s.lastCollectionId);
   const queryClient = useQueryClient();
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   const [newName, setNewName] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(lastCollectionId);

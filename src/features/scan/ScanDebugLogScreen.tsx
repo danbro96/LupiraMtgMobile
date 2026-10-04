@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { FlatList, Platform, Pressable, Share, StyleSheet, View } from 'react-native';
 import { Button, SegmentedButtons, Text } from 'react-native-paper';
 import { Image } from 'expo-image';
@@ -33,7 +33,7 @@ export function ScanDebugLogScreen() {
   const clearTrace = useScanTrace((s) => s.clear);
   const [tab, setTab] = useState<Tab>('pipeline');
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
   const empty = entries.length === 0 && events.length === 0;
 
   const onShare = async () => {
@@ -64,8 +64,8 @@ export function ScanDebugLogScreen() {
   };
 
   // Render newest-first without mutating the underlying arrays.
-  const reversedEntries = useMemo(() => [...entries].reverse(), [entries]);
-  const reversedEvents = useMemo(() => [...events].reverse(), [events]);
+  const reversedEntries = [...entries].reverse();
+  const reversedEvents = [...events].reverse();
   const tabEmpty = tab === 'pipeline' ? events.length === 0 : entries.length === 0;
 
   return (

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -22,7 +22,7 @@ export const GALLERY_TILE_SIZE = 80;
  */
 export function CaptureGallery({ records, onOpen, onRetry, onDismiss }: Props) {
   // Newest at the right edge, where the eye lands after a capture.
-  const ordered = useMemo(() => [...records].sort((a, b) => a.createdAt - b.createdAt), [records]);
+  const ordered = [...records].sort((a, b) => a.createdAt - b.createdAt);
 
   if (records.length === 0) return null;
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button as PaperButton, Text } from 'react-native-paper';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -58,7 +58,7 @@ export function SelectionScreen() {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   const selection = useCurrentSelectionQuery(currentSelectionId);
   const collections = useQuery({ queryKey: ['collections'], queryFn: () => listCollections() });
@@ -70,13 +70,10 @@ export function SelectionScreen() {
   const summary = useMemo(() => summariseSelection(entries), [entries]);
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
-  const edit = useCallback(
-    async (key: string, action: (selectionId: string) => Promise<unknown>) => {
-      if (!currentSelectionId) return;
-      await runSelectionEdit(currentSelectionId, key, action, queryClient, setBusyKey);
-    },
-    [currentSelectionId, queryClient],
-  );
+  const edit = async (key: string, action: (selectionId: string) => Promise<unknown>) => {
+    if (!currentSelectionId) return;
+    await runSelectionEdit(currentSelectionId, key, action, queryClient, setBusyKey);
+  };
 
   const setAttributes = (group: SelectionGroup, attrs: EntryAttributes) => {
     hapticSelection();

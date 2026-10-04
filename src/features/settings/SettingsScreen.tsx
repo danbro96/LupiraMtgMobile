@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { List, Text } from 'react-native-paper';
@@ -21,7 +20,7 @@ export function SettingsScreen() {
   const mtgApiUrl = useAuth(s => s.mtgApiUrl);
   const confirm = useConfirm();
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   async function signOut() {
     const ok = await confirm({

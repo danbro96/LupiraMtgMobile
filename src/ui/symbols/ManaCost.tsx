@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useColors } from '../theme';
 import { findSymbol } from './findSymbol';
@@ -10,7 +10,7 @@ const labelOf = (code: string) => findSymbol(code)?.label;
 /** A mana cost as a row of symbols; split and adventure costs keep their ` // ` separator. */
 export function ManaCost({ cost, size = 16 }: { cost: string | null | undefined; size?: number }) {
   const c = useColors();
-  const tokens = useMemo(() => (cost ? parseSymbols(cost) : []), [cost]);
+  const tokens = cost ? parseSymbols(cost) : [];
   if (tokens.length === 0) return null;
   return (
     <View style={styles.row} accessible accessibilityLabel={spokenText(cost!, labelOf)}>

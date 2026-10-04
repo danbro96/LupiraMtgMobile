@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { List, Switch, Text } from 'react-native-paper';
 import Slider from '@react-native-community/slider';
@@ -30,7 +30,7 @@ export function ScanSettingsScreen() {
   const navigation = useNavigation<Nav>();
   const confirm = useConfirm();
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   useEffect(() => {
     if (!settings.loaded) void settings.load();

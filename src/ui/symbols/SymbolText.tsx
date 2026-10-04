@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet, View, type StyleProp, type TextStyle } from 'react-native';
 import { Text, useTheme, type MD3Theme, type MD3TypescaleKey } from 'react-native-paper';
 import { findSymbol } from './findSymbol';
@@ -18,7 +18,7 @@ export function SymbolText({ text, variant = 'bodyMedium', style }: Props) {
   const theme = useTheme<MD3Theme>();
   const fontSize = StyleSheet.flatten(style)?.fontSize ?? theme.fonts[variant].fontSize ?? 14;
   const size = Math.round(fontSize * 0.95);
-  const spans = useMemo(() => parseRulesText(text), [text]);
+  const spans = parseRulesText(text);
 
   return (
     <Text variant={variant} style={style} accessibilityLabel={spokenText(text, labelOf)}>

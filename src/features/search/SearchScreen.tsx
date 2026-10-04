@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Badge, Chip, Searchbar, Text } from 'react-native-paper';
 import { Image } from 'expo-image';
@@ -45,7 +45,7 @@ const CARD_ASPECT = 488 / 680;
 export function SearchScreen() {
   const navigation = useNavigation<Nav>();
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
   const prefs = useSearchPrefs();
   const [query, setQuery] = useState('');
   const debounced = useDebounced(query, 300);
@@ -58,7 +58,7 @@ export function SearchScreen() {
     if (!prefs.loaded) void prefs.load();
   }, [prefs]);
 
-  const params = useMemo(() => toCardParams(debounced, filters, sortOption), [debounced, filters, sortOption]);
+  const params = toCardParams(debounced, filters, sortOption);
   const cards = useInfiniteQuery({
     queryKey: ['cards', 'search', params],
     queryFn: ({ pageParam, signal }) => listCards({ ...params, take: PAGE_SIZE, skip: pageParam }, { signal }),
@@ -71,11 +71,9 @@ export function SearchScreen() {
   });
 
   // Offset paging over a live catalogue can repeat a row across page boundaries; FlashList needs unique keys.
-  const results = useMemo(() => {
-    const seen = new Map<string, CardDto>();
-    for (const page of cards.data?.pages ?? []) for (const card of page.results) seen.set(card.oracleId, card);
-    return [...seen.values()];
-  }, [cards.data]);
+  const seen = new Map<string, CardDto>();
+  for (const page of cards.data?.pages ?? []) for (const card of page.results) seen.set(card.oracleId, card);
+  const results = [...seen.values()];
   const total = cards.data?.pages[0]?.total;
 
   const chips = activeFilters(filters);
@@ -83,19 +81,13 @@ export function SearchScreen() {
   const hasQuery = !!debounced.trim();
   const currentSort = effectiveSort(sortOption, hasQuery);
 
-  const openCard = useCallback(
-    (card: CardDto) => {
-      if (query.trim()) void useSearchPrefs.getState().addRecent(query);
-      navigation.navigate('CardDetail', { oracleId: card.oracleId });
-    },
-    [navigation, query],
-  );
+  const openCard = (card: CardDto) => {
+    if (query.trim()) void useSearchPrefs.getState().addRecent(query);
+    navigation.navigate('CardDetail', { oracleId: card.oracleId });
+  };
 
-  const renderItem = useCallback<ListRenderItem<CardDto>>(
-    ({ item }) =>
-      grid ? <CardTile card={item} styles={styles} onPress={openCard} /> : <CardRow card={item} styles={styles} onPress={openCard} />,
-    [grid, styles, openCard],
-  );
+  const renderItem: ListRenderItem<CardDto> = ({ item }) =>
+    grid ? <CardTile card={item} styles={styles} onPress={openCard} /> : <CardRow card={item} styles={styles} onPress={openCard} />;
 
   const onEndReached = () => {
     if (cards.hasNextPage && !cards.isFetchingNextPage) void cards.fetchNextPage();

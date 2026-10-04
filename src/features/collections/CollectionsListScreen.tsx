@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -26,7 +26,7 @@ export function CollectionsListScreen() {
   const queryClient = useQueryClient();
   const [newName, setNewName] = useState('');
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   const collections = useQuery({
     queryKey: ['collections'],

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React from 'react';
 import { Text } from 'react-native';
 import Svg, { Circle, G, Path } from 'react-native-svg';
 import { findSymbol } from './findSymbol';
@@ -16,7 +16,7 @@ function renderNode(node: SvgNode, key: number): React.ReactNode {
 }
 
 /** One card symbol (`W`, `2/U`, `T`, …). Codes Scryfall doesn't know render as `{code}` text. */
-export const ManaSymbol = memo(function ManaSymbol({ code, size = 16 }: { code: string; size?: number }) {
+export function ManaSymbol({ code, size = 16 }: { code: string; size?: number }) {
   const def = findSymbol(code);
   if (!def) return <Text style={{ fontSize: size * 0.8 }}>{`{${code}}`}</Text>;
   return (
@@ -24,4 +24,4 @@ export const ManaSymbol = memo(function ManaSymbol({ code, size = 16 }: { code: 
       {def.nodes.map(renderNode)}
     </Svg>
   );
-});
+}

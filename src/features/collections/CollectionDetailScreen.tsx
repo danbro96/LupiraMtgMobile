@@ -1,4 +1,4 @@
-import { memo, useCallback, useLayoutEffect, useMemo, useState } from 'react';
+import { memo, useLayoutEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
@@ -35,7 +35,7 @@ export function CollectionDetailScreen() {
   const confirm = useConfirm();
   const [renameOpen, setRenameOpen] = useState(false);
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   const detail = useQuery({
     queryKey: ['collection', params.collectionId],
@@ -87,22 +87,18 @@ export function CollectionDetailScreen() {
     });
   }, [navigation, detail.data?.name, remove, confirm, styles, c]);
 
-  const onRemove = useCallback(
-    async (card: CardInstanceDto) => {
-      const ok = await confirm({
-        title: 'Remove card?',
-        message: `Drop ${card.printing.name} from this collection?`,
-        confirmLabel: 'Remove',
-        destructive: true,
-      });
-      if (ok) removeCard.mutate(card.instanceId);
-    },
-    [confirm, removeCard],
-  );
+  const onRemove = async (card: CardInstanceDto) => {
+    const ok = await confirm({
+      title: 'Remove card?',
+      message: `Drop ${card.printing.name} from this collection?`,
+      confirmLabel: 'Remove',
+      destructive: true,
+    });
+    if (ok) removeCard.mutate(card.instanceId);
+  };
 
-  const renderItem = useCallback<ListRenderItem<CardInstanceDto>>(
-    ({ item }) => <CardRow card={item} styles={styles} palette={c} onRemove={onRemove} />,
-    [styles, c, onRemove],
+  const renderItem: ListRenderItem<CardInstanceDto> = ({ item }) => (
+    <CardRow card={item} styles={styles} palette={c} onRemove={onRemove} />
   );
 
   return (
