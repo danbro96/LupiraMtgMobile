@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import Svg, { Line, Rect } from 'react-native-svg';
 import { GUIDE_SHORT_FRACTION, MTG_ASPECT } from '../detection/useCardDetection';
@@ -20,7 +20,7 @@ type Props = {
  * useCardDetection.ts.
  */
 export function GuideFrame({ containerWidth, containerHeight, flashKey }: Props) {
-  const flash = useRef(new Animated.Value(0)).current;
+  const [flash] = useState(() => new Animated.Value(0));
   useEffect(() => {
     if (flashKey === 0) return;
     flash.setValue(1);

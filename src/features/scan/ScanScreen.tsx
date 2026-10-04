@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
   AppState,
   AppStateStatus,
@@ -131,13 +131,17 @@ export function ScanScreen() {
   // `ensure` is re-created every render; a ref keeps the upload callbacks (and so the worklet's
   // onAutoCapture) stable.
   const ensureSelectionRef = useRef(ensureSelection);
-  ensureSelectionRef.current = ensureSelection;
   const selectionCardsRef = useRef(selectionQuery.data?.cards);
-  selectionCardsRef.current = selectionQuery.data?.cards;
+  useLayoutEffect(() => {
+    ensureSelectionRef.current = ensureSelection;
+    selectionCardsRef.current = selectionQuery.data?.cards;
+  });
 
   const [records, dispatch] = useReducer(captureQueueReducer, [] as CaptureRecord[]);
   const recordsRef = useRef(records);
-  recordsRef.current = records;
+  useLayoutEffect(() => {
+    recordsRef.current = records;
+  });
 
   const [banner, setBanner] = useState<ScanBannerState | null>(null);
   const showBanner = useCallback((b: Omit<ScanBannerState, 'nonce'>) => {
@@ -212,7 +216,9 @@ export function ScanScreen() {
 
   const cameraActive = isFocused && appState === 'active';
   const cameraActiveRef = useRef(cameraActive);
-  cameraActiveRef.current = cameraActive;
+  useLayoutEffect(() => {
+    cameraActiveRef.current = cameraActive;
+  });
 
   // Uploads run one at a time: the OCR backend processes one image at a time, so parallel scans only
   // queue there and hit its 30 s timeout. Waiting here keeps every request inside the timeout.

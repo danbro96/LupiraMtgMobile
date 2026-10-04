@@ -64,17 +64,17 @@ export function LoginScreen() {
     }
   }
 
+  const [handledResponse, setHandledResponse] = useState(response);
+  if (response !== handledResponse) {
+    setHandledResponse(response);
+    if (response?.type === 'error') setError(response.error?.description ?? 'Sign-in failed.');
+    else if (response && response.type !== 'success') setError(`Sign-in did not complete (${response.type}).`);
+  }
+
   useEffect(() => {
     if (!response) return;
     logAuth('response', response.type);
-    if (response.type === 'error') {
-      setError(response.error?.description ?? 'Sign-in failed.');
-      return;
-    }
-    if (response.type !== 'success') {
-      setError(`Sign-in did not complete (${response.type}).`);
-      return;
-    }
+    if (response.type !== 'success') return;
     if (!discovery?.tokenEndpoint || !request) {
       logAuth('response:guard', `discovery=${!!discovery} request=${!!request}`);
       return;

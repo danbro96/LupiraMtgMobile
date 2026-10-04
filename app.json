@@ -8,6 +8,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "runtimeVersion": { "policy": "fingerprint" },
+    "experiments": { "reactCompiler": true },
     "updates": { "url": "https://u.expo.dev/6f9cc1b4-b47b-49bc-b634-6bcf96bb8a0c" },
     "ios": {
       "supportsTablet": true,

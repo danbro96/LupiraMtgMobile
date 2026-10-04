@@ -29,8 +29,9 @@ jobs:
           cache-dependency-path: package-lock.json
       - run: npm i -g npm@12
       - run: npm ci
-      - name: Typecheck and test
+      - name: Lint, typecheck and test
         run: |
+          npm run lint
           npm run typecheck
           npm test
       - uses: expo/expo-github-action@v8

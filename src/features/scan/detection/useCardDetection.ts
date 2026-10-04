@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import * as FileSystem from 'expo-file-system/legacy';
 import {
   type CameraFrameOutput,
@@ -275,7 +275,9 @@ export function useCardDetection(params: CardDetectionParams): CardDetectionStat
   }, [tunables, tuning]);
 
   const onAutoCaptureRef = useRef(params.onAutoCapture);
-  onAutoCaptureRef.current = params.onAutoCapture;
+  useLayoutEffect(() => {
+    onAutoCaptureRef.current = params.onAutoCapture;
+  });
 
   const triggerAutoCapture = (captureUri: string, q: Quad, size: FrameSize, diag: CaptureDiagnostics) => {
     onAutoCaptureRef.current(captureUri, q, size, diag);

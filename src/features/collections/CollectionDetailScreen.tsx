@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useLayoutEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
@@ -188,10 +188,11 @@ function RenameDialog({
 }) {
   const [draft, setDraft] = useState(currentName);
   const [busy, setBusy] = useState(false);
-
-  React.useEffect(() => {
+  const [syncedFor, setSyncedFor] = useState({ open, currentName });
+  if (open !== syncedFor.open || currentName !== syncedFor.currentName) {
+    setSyncedFor({ open, currentName });
     if (open) setDraft(currentName);
-  }, [open, currentName]);
+  }
 
   const submit = async () => {
     const name = draft.trim();
