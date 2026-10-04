@@ -7,6 +7,7 @@ import { PaperProvider } from 'react-native-paper';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './src/query/queryClient';
 import { RootStack } from './src/navigation/RootStack';
+import { useAutoUpdate } from './src/ui/hooks/useAutoUpdate';
 import { useAuth } from './src/store/auth-store';
 import { ToastHost } from './src/ui/components/ToastHost';
 import { ConfirmDialogHost } from './src/ui/components/ConfirmDialog';
@@ -28,6 +29,7 @@ Sentry.init({
 });
 
 export default Sentry.wrap(function App() {
+  useAutoUpdate();
   const [ready, setReady] = useState(false);
   const scheme = useColorScheme();
 
