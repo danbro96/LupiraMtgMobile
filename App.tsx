@@ -15,6 +15,7 @@ import { navDark, navLight, paperDark, paperLight } from './src/ui/theme';
 import { paperSettings } from './src/ui/theme/paperSettings';
 import * as Sentry from '@sentry/react-native';
 import { SENTRY_DSN } from './src/config';
+import { UPDATE_CHANNEL, UPDATE_ID } from './src/ui/buildInfo';
 
 Sentry.init({
   dsn: SENTRY_DSN,
@@ -27,6 +28,8 @@ Sentry.init({
   replaysOnErrorSampleRate: 1,
   integrations: [Sentry.mobileReplayIntegration()],
 });
+Sentry.setTag('update_id', UPDATE_ID ?? 'none');
+Sentry.setTag('update_channel', UPDATE_CHANNEL ?? 'none');
 
 export default Sentry.wrap(function App() {
   useAutoUpdate();

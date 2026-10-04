@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../store/auth-store';
 import { APP_VERSION } from '../../config';
+import { UPDATE_LABEL } from '../../ui/buildInfo';
 import type { RootStackParamList } from '../../navigation/types';
 import { Button } from '../../ui/components/Button';
 import { useConfirm } from '../../ui/components/ConfirmDialog';
@@ -57,7 +58,7 @@ export function SettingsScreen() {
       />
 
       <List.Subheader>About</List.Subheader>
-      <Text variant="labelSmall" style={styles.version}>Lupira MTG v{APP_VERSION}</Text>
+      <Text variant="labelSmall" style={styles.version}>Lupira MTG v{APP_VERSION} · {UPDATE_LABEL}</Text>
 
       <List.Subheader>Developer</List.Subheader>
       <List.Item
