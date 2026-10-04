@@ -4,7 +4,7 @@ import { ActivityIndicator, Searchbar, Text } from 'react-native-paper';
 import { Image } from 'expo-image';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { listCards, useListPrintings } from '../../api/generated/cards/cards';
@@ -55,31 +55,7 @@ export function PrintingPickerScreen() {
 
   const pick = async (printing: CardPrintingDto) => {
     if (saving) return;
-    setSaving(true);
-    try {
-      const selectionId = await ensure();
-      const attrs = {
-        isFoil: params.isFoil ?? DEFAULT_ATTRIBUTES.isFoil,
-        condition: params.condition ?? DEFAULT_ATTRIBUTES.condition,
-        language: params.language ?? DEFAULT_ATTRIBUTES.language,
-      };
-      const instanceIds = params.replaceInstanceIds?.length
-        ? await replaceEntries(selectionId, params.replaceInstanceIds, printing.id, attrs)
-        : [(await addEntry(selectionId, printing.id, attrs, { allowDuplicate: true })).instanceId];
-      await queryClient.invalidateQueries({ queryKey: ['selection'] });
-      hapticSuccess();
-      if (params.captureId) {
-        navigation.popTo('Scan', {
-          manualMatch: { captureId: params.captureId, printingId: printing.id, instanceId: instanceIds[0] },
-        });
-      } else {
-        navigation.goBack();
-      }
-    } catch (err: unknown) {
-      toastError((err as Error).message);
-    } finally {
-      setSaving(false);
-    }
+    await pickPrinting(printing, { params, ensure, queryClient, navigation, setSaving });
   };
 
   if (oracleId) {
@@ -142,6 +118,49 @@ export function PrintingPickerScreen() {
       />
     </SafeAreaView>
   );
+}
+
+async function pickPrinting(
+  printing: CardPrintingDto,
+  {
+    params,
+    ensure,
+    queryClient,
+    navigation,
+    setSaving,
+  }: {
+    params: Route['params'];
+    ensure: () => Promise<string>;
+    queryClient: QueryClient;
+    navigation: Nav;
+    setSaving: (saving: boolean) => void;
+  },
+) {
+  setSaving(true);
+  try {
+    const selectionId = await ensure();
+    const attrs = {
+      isFoil: params.isFoil ?? DEFAULT_ATTRIBUTES.isFoil,
+      condition: params.condition ?? DEFAULT_ATTRIBUTES.condition,
+      language: params.language ?? DEFAULT_ATTRIBUTES.language,
+    };
+    const instanceIds = params.replaceInstanceIds?.length
+      ? await replaceEntries(selectionId, params.replaceInstanceIds, printing.id, attrs)
+      : [(await addEntry(selectionId, printing.id, attrs, { allowDuplicate: true })).instanceId];
+    await queryClient.invalidateQueries({ queryKey: ['selection'] });
+    hapticSuccess();
+    if (params.captureId) {
+      navigation.popTo('Scan', {
+        manualMatch: { captureId: params.captureId, printingId: printing.id, instanceId: instanceIds[0] },
+      });
+    } else {
+      navigation.goBack();
+    }
+  } catch (err: unknown) {
+    toastError((err as Error).message);
+  } finally {
+    setSaving(false);
+  }
 }
 
 function CardRow({ card, styles, onPress }: { card: CardDto; styles: Styles; onPress: () => void }) {

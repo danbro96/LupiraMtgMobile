@@ -283,501 +283,561 @@ export function useCardDetection(params: CardDetectionParams): CardDetectionStat
     onAutoCaptureRef.current(captureUri, q, size, diag);
   };
 
+  const processFrame = createFrameProcessor({
+    quad,
+    metrics,
+    stableFrames,
+    inBand,
+    history,
+    lastFrameAt,
+    ema,
+    framesProcessedShared,
+    smoothedDetQuad,
+    smoothMissCount,
+    cardAbsentFrames,
+    lastCapture,
+    tunables,
+  });
+
   const frameOutput = useFrameOutput({
     pixelFormat: 'yuv',
     dropFramesWhileBusy: true,
     onFrame: (frame: Frame) => {
       'worklet';
-      // Hoisted so the outer finally sees them after early returns; `gray` must outlive the capture warp.
-      let gray: any = null;
-      let opencvDirty = false;
+      processFrame(frame, triggerAutoCapture);
+    },
+  });
 
-      const resetTracking = () => {
-        stableFrames.setBlocking(0);
-        inBand.setBlocking(false);
-        smoothedDetQuad.setBlocking(null);
-        smoothMissCount.setBlocking(0);
-        history.setBlocking([]);
-      };
+  return { quad, metrics, stableFrames, frameOutput };
+}
 
-      try {
-        const tune = tunables.getDirty();
-        const planes = frame.isPlanar ? frame.getPlanes() : [];
-        if (!tune.enabled) {
-          quad.setBlocking(null);
-          metrics.setBlocking({
-            ...INITIAL_METRICS,
-            frameSize: { width: frame.width, height: frame.height },
-            pixelFormat: frame.pixelFormat,
-            orientation: frame.orientation,
-            isMirrored: frame.isMirrored,
-            bytesPerRow: frame.bytesPerRow,
-            planesCount: planes.length,
-            framesProcessed: framesProcessedShared.getDirty(),
-            lastStep: 'detection-disabled',
-          });
-          resetTracking();
-          return;
-        }
+function createFrameProcessor({
+  quad,
+  metrics,
+  stableFrames,
+  inBand,
+  history,
+  lastFrameAt,
+  ema,
+  framesProcessedShared,
+  smoothedDetQuad,
+  smoothMissCount,
+  cardAbsentFrames,
+  lastCapture,
+  tunables,
+}: {
+  quad: Synchronizable<Quad | null>;
+  metrics: Synchronizable<DetectionMetrics>;
+  stableFrames: Synchronizable<number>;
+  inBand: Synchronizable<boolean>;
+  history: Synchronizable<Quad[]>;
+  lastFrameAt: Synchronizable<number>;
+  ema: Synchronizable<number>;
+  framesProcessedShared: Synchronizable<number>;
+  smoothedDetQuad: Synchronizable<Quad | null>;
+  smoothMissCount: Synchronizable<number>;
+  cardAbsentFrames: Synchronizable<number>;
+  lastCapture: Synchronizable<{ centroidX: number; centroidY: number; shortEdge: number } | null>;
+  tunables: Synchronizable<{
+    enabled: boolean;
+    autoCaptureEnabled: boolean;
+    thresholdHigh: number;
+    minStableFrames: number;
+    wStability: number;
+    wSharpness: number;
+    wCoverage: number;
+    wBrightness: number;
+  }>;
+}) {
+  return (frame: Frame, triggerAutoCapture: CardDetectionParams['onAutoCapture']) => {
+    'worklet';
+    // Hoisted so the outer finally sees them after early returns; `gray` must outlive the capture warp.
+    let gray: any = null;
+    let opencvDirty = false;
 
-        const now = Date.now();
-        const lastAt = lastFrameAt.getDirty();
-        const dtMs = lastAt === 0 ? 0 : now - lastAt;
-        lastFrameAt.setBlocking(now);
-        const instantFps = dtMs > 0 ? 1000 / dtMs : 0;
-        const prevEma = ema.getDirty();
-        const newEma = prevEma === 0 ? instantFps : prevEma * 0.85 + instantFps * 0.15;
-        ema.setBlocking(newEma);
+    const resetTracking = () => {
+      stableFrames.setBlocking(0);
+      inBand.setBlocking(false);
+      smoothedDetQuad.setBlocking(null);
+      smoothMissCount.setBlocking(0);
+      history.setBlocking([]);
+    };
 
-        const frameW = frame.width;
-        const frameH = frame.height;
-
-        let yWidth = 0;
-        let yHeight = 0;
-        let detWPlane = 0;
-        let detHPlane = 0;
-        let scalePlane = 1;
-        let roiX = 0;
-        let roiY = 0;
-        let roiWidth = 0;
-        let roiHeight = 0;
-
-        let detectedQuad: Quad | null = null;
-        let bestArea = 0;
-        let contourCountForMetrics = 0;
-        let candidateQuadCount = 0;
-        let clippedQuadCount = 0;
-        let edgePixelCount = 0;
-        let largeContourCount = 0;
-        let largestContourFillPct = 0;
-        let largestContourAspect = 0;
-        let bestSeenArea = 0;
-        let lastStep = 'enter';
-        let lastBufferBytes = 0;
-        let sharpnessRaw = 0;
-        let brightnessRaw = 0;
-        const framesProcessedNow = framesProcessedShared.getDirty() + 1;
-        framesProcessedShared.setBlocking(framesProcessedNow);
-
-        let pipelineError = '';
-        const pipelineMetrics = (): DetectionMetrics => ({
+    try {
+      const tune = tunables.getDirty();
+      const planes = frame.isPlanar ? frame.getPlanes() : [];
+      if (!tune.enabled) {
+        quad.setBlocking(null);
+        metrics.setBlocking({
           ...INITIAL_METRICS,
-          frameSize: { width: frameW, height: frameH },
-          detectionFps: newEma,
+          frameSize: { width: frame.width, height: frame.height },
           pixelFormat: frame.pixelFormat,
           orientation: frame.orientation,
           isMirrored: frame.isMirrored,
           bytesPerRow: frame.bytesPerRow,
           planesCount: planes.length,
-          contourCount: contourCountForMetrics,
-          candidateQuadCount,
-          clippedQuadCount,
-          edgePixelCount,
-          largeContourCount,
-          largestContourFillPct,
-          largestContourAspect,
-          framesProcessed: framesProcessedNow,
-          lastBufferBytes,
-          lastError: pipelineError,
-          lastStep,
+          framesProcessed: framesProcessedShared.getDirty(),
+          lastStep: 'detection-disabled',
         });
+        resetTracking();
+        return;
+      }
 
-        try {
-          if (!frame.isPlanar) {
-            lastStep = 'skip:not-planar';
-            return;
-          }
-          if (planes.length === 0) {
-            lastStep = 'skip:no-planes';
-            return;
-          }
-          const yPlane = planes[0];
-          yWidth = yPlane.width;
-          yHeight = yPlane.height;
-          const yBytesPerRow = yPlane.bytesPerRow;
+      const now = Date.now();
+      const lastAt = lastFrameAt.getDirty();
+      const dtMs = lastAt === 0 ? 0 : now - lastAt;
+      lastFrameAt.setBlocking(now);
+      const instantFps = dtMs > 0 ? 1000 / dtMs : 0;
+      const prevEma = ema.getDirty();
+      const newEma = prevEma === 0 ? instantFps : prevEma * 0.85 + instantFps * 0.15;
+      ema.setBlocking(newEma);
 
-          lastStep = 'getPixelBuffer';
-          const buffer = yPlane.getPixelBuffer();
-          lastBufferBytes = buffer.byteLength;
+      const frameW = frame.width;
+      const frameH = frame.height;
 
-          const expectedPadded = yBytesPerRow * yHeight;
-          if (buffer.byteLength < expectedPadded) {
-            lastStep = `skip:short-buffer(got=${buffer.byteLength},need=${expectedPadded})`;
-            return;
-          }
+      let yWidth = 0;
+      let yHeight = 0;
+      let detWPlane = 0;
+      let detHPlane = 0;
+      let scalePlane = 1;
+      let roiX = 0;
+      let roiY = 0;
+      let roiWidth = 0;
+      let roiHeight = 0;
 
-          lastStep = 'Uint8Array';
-          const data = new Uint8Array(buffer);
+      let detectedQuad: Quad | null = null;
+      let bestArea = 0;
+      let contourCountForMetrics = 0;
+      let candidateQuadCount = 0;
+      let clippedQuadCount = 0;
+      let edgePixelCount = 0;
+      let largeContourCount = 0;
+      let largestContourFillPct = 0;
+      let largestContourAspect = 0;
+      let bestSeenArea = 0;
+      let lastStep = 'enter';
+      let lastBufferBytes = 0;
+      let sharpnessRaw = 0;
+      let brightnessRaw = 0;
+      const framesProcessedNow = framesProcessedShared.getDirty() + 1;
+      framesProcessedShared.setBlocking(framesProcessedNow);
 
-          lastStep = 'bufferToMat';
-          opencvDirty = true;
-          if (yBytesPerRow === yWidth) {
-            gray = OpenCV.bufferToMat('uint8', yHeight, yWidth, 1, data);
-          } else {
-            const tight = new Uint8Array(yWidth * yHeight);
-            for (let row = 0; row < yHeight; row += 1) {
-              const src = row * yBytesPerRow;
-              const dst = row * yWidth;
-              for (let col = 0; col < yWidth; col += 1) {
-                tight[dst + col] = data[src + col];
-              }
-            }
-            gray = OpenCV.bufferToMat('uint8', yHeight, yWidth, 1, tight);
-          }
+      let pipelineError = '';
+      const pipelineMetrics = (): DetectionMetrics => ({
+        ...INITIAL_METRICS,
+        frameSize: { width: frameW, height: frameH },
+        detectionFps: newEma,
+        pixelFormat: frame.pixelFormat,
+        orientation: frame.orientation,
+        isMirrored: frame.isMirrored,
+        bytesPerRow: frame.bytesPerRow,
+        planesCount: planes.length,
+        contourCount: contourCountForMetrics,
+        candidateQuadCount,
+        clippedQuadCount,
+        edgePixelCount,
+        largeContourCount,
+        largestContourFillPct,
+        largestContourAspect,
+        framesProcessed: framesProcessedNow,
+        lastBufferBytes,
+        lastError: pipelineError,
+        lastStep,
+      });
 
-          // Centre-crop to the guide ROI. Buffer is sensor-landscape; portrait
-          // card → ROI long axis = buffer X. ROI aspect = MTG_LONG/MTG_SHORT.
-          const guideShortFraction = GUIDE_SHORT_FRACTION;
-          const guideLongAspect = MTG_LONG / MTG_SHORT; // 1.4
-          let roiH = Math.round(yHeight * guideShortFraction);
-          let roiW = Math.round(roiH * guideLongAspect);
-          if (roiW > yWidth * 0.95) {
-            roiW = Math.round(yWidth * 0.95);
-            roiH = Math.round(roiW / guideLongAspect);
-          }
-          roiX = Math.round((yWidth - roiW) / 2);
-          roiY = Math.round((yHeight - roiH) / 2);
-          roiWidth = roiW;
-          roiHeight = roiH;
+      try {
+        if (!frame.isPlanar) {
+          lastStep = 'skip:not-planar';
+          return;
+        }
+        if (planes.length === 0) {
+          lastStep = 'skip:no-planes';
+          return;
+        }
+        const yPlane = planes[0];
+        yWidth = yPlane.width;
+        yHeight = yPlane.height;
+        const yBytesPerRow = yPlane.bytesPerRow;
 
-          lastStep = 'cropROI';
-          const grayRoi = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
-          const roiRect = OpenCV.createObject(ObjectType.Rect, roiX, roiY, roiW, roiH);
-          OpenCV.invoke('crop', gray, grayRoi, roiRect);
+        lastStep = 'getPixelBuffer';
+        const buffer = yPlane.getPixelBuffer();
+        lastBufferBytes = buffer.byteLength;
 
-          detWPlane = Math.min(DETECT_WIDTH, roiW);
-          detHPlane = Math.round((detWPlane * roiH) / roiW);
-          scalePlane = roiW / detWPlane;
-
-          lastStep = 'createSmall';
-          const small = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
-          const sizeSmall = OpenCV.createObject(ObjectType.Size, detWPlane, detHPlane);
-          lastStep = 'resize';
-          OpenCV.invoke('resize', grayRoi, small, sizeSmall, 0, 0, InterpolationFlags.INTER_AREA);
-
-          lastStep = 'mean.brightness';
-          const brightnessScalar = OpenCV.invoke('mean', small);
-          const brightnessJs = OpenCV.toJSValue(brightnessScalar);
-          brightnessRaw = brightnessJs.a;
-
-          // mean(|Laplacian|) rather than var(L): no separate squaring step.
-          lastStep = 'Laplacian';
-          const lapl = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_16SC1);
-          OpenCV.invoke('Laplacian', small, lapl, DataTypes.CV_16S, 3, 1, 0, BorderTypes.BORDER_DEFAULT);
-          lastStep = 'convertScaleAbs';
-          const laplAbs = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
-          OpenCV.invoke('convertScaleAbs', lapl, laplAbs, 1);
-          lastStep = 'mean.sharpness';
-          const sharpnessScalar = OpenCV.invoke('mean', laplAbs);
-          const sharpnessJs = OpenCV.toJSValue(sharpnessScalar);
-          sharpnessRaw = sharpnessJs.a;
-
-          lastStep = 'GaussianBlur';
-          const blurred = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
-          const blurKsize = OpenCV.createObject(ObjectType.Size, 5, 5);
-          OpenCV.invoke('GaussianBlur', small, blurred, blurKsize, 0);
-
-          lastStep = 'Canny';
-          const edges = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
-          OpenCV.invoke('Canny', blurred, edges, 30, 100);
-
-          lastStep = 'morphClose';
-          const morphKernel = OpenCV.invoke(
-            'getStructuringElement',
-            MorphShapes.MORPH_RECT,
-            OpenCV.createObject(ObjectType.Size, 5, 5),
-          );
-          const closed = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
-          OpenCV.invoke('morphologyEx', edges, closed, MorphTypes.MORPH_CLOSE, morphKernel);
-
-          lastStep = 'countNonZero';
-          edgePixelCount = OpenCV.invoke('countNonZero', closed).value;
-
-          lastStep = 'findContours';
-          const contours = OpenCV.createObject(ObjectType.MatVector);
-          OpenCV.invoke(
-            'findContours',
-            closed,
-            contours,
-            RetrievalModes.RETR_EXTERNAL,
-            ContourApproximationModes.CHAIN_APPROX_SIMPLE,
-          );
-
-          lastStep = 'toJSValue.contours';
-          const contourCount = OpenCV.toJSValue(contours).array.length;
-          contourCountForMetrics = contourCount;
-          const minArea = detWPlane * detHPlane * MIN_AREA_FRACTION;
-
-          for (let i = 0; i < contourCount; i += 1) {
-            const contour = OpenCV.copyObjectFromVector(contours, i);
-            const area = OpenCV.invoke('contourArea', contour, false).value;
-            if (area < minArea) continue;
-            largeContourCount += 1;
-
-            const rrect = OpenCV.invoke('minAreaRect', contour);
-            const rrectJs = OpenCV.toJSValue(rrect);
-            const rectArea = rrectJs.width * rrectJs.height;
-            if (rectArea <= 0) continue;
-            const fillRatio = area / rectArea;
-            const aspect =
-              Math.min(rrectJs.width, rrectJs.height) /
-              Math.max(rrectJs.width, rrectJs.height);
-
-            if (area > bestSeenArea) {
-              bestSeenArea = area;
-              largestContourFillPct = Math.round(fillRatio * 100);
-              largestContourAspect = aspect;
-            }
-
-            if (fillRatio < FILL_RATIO_MIN) continue;
-            if (Math.abs(aspect - MTG_ASPECT) > ASPECT_TOLERANCE) continue;
-
-            const angleRad = (rrectJs.angle * Math.PI) / 180;
-            const cosA = Math.cos(angleRad);
-            const sinA = Math.sin(angleRad);
-            const halfW = rrectJs.width / 2;
-            const halfH = rrectJs.height / 2;
-            const cx = rrectJs.centerX;
-            const cy = rrectJs.centerY;
-            const corners: Quad = [
-              { x: cx + (-halfW) * cosA - (-halfH) * sinA, y: cy + (-halfW) * sinA + (-halfH) * cosA },
-              { x: cx + halfW * cosA - (-halfH) * sinA, y: cy + halfW * sinA + (-halfH) * cosA },
-              { x: cx + halfW * cosA - halfH * sinA, y: cy + halfW * sinA + halfH * cosA },
-              { x: cx + (-halfW) * cosA - halfH * sinA, y: cy + (-halfW) * sinA + halfH * cosA },
-            ];
-            let clipped = false;
-            for (let k = 0; k < 4; k += 1) {
-              const p = corners[k];
-              if (
-                p.x < ROI_EDGE_MARGIN ||
-                p.y < ROI_EDGE_MARGIN ||
-                p.x > detWPlane - 1 - ROI_EDGE_MARGIN ||
-                p.y > detHPlane - 1 - ROI_EDGE_MARGIN
-              ) {
-                clipped = true;
-              }
-            }
-            if (clipped) {
-              clippedQuadCount += 1;
-              continue;
-            }
-            const ordered = orderQuadCorners(corners);
-
-            candidateQuadCount += 1;
-            if (area > bestArea) {
-              bestArea = area;
-              detectedQuad = ordered;
-            }
-          }
-
-          lastStep = 'done';
-        } catch (e: unknown) {
-          pipelineError = truncatedErrorMessage(e);
-          quad.setBlocking(null);
-          metrics.setBlocking(pipelineMetrics());
-          stableFrames.setBlocking(0);
-          inBand.setBlocking(false);
+        const expectedPadded = yBytesPerRow * yHeight;
+        if (buffer.byteLength < expectedPadded) {
+          lastStep = `skip:short-buffer(got=${buffer.byteLength},need=${expectedPadded})`;
           return;
         }
 
-        // Smooth the detection-space quad with a per-corner EMA. On a missed
-        // detection, hold the previous smoothed quad alive briefly so 1–2
-        // frame jitter doesn't reset the stable-frame counter.
-        let activeQuad: Quad | null = detectedQuad;
-        if (detectedQuad) {
-          const prevSmoothed = smoothedDetQuad.getDirty();
-          if (prevSmoothed) {
-            const a = QUAD_SMOOTH_ALPHA;
-            const inv = 1 - a;
-            activeQuad = [
-              { x: prevSmoothed[0].x * inv + detectedQuad[0].x * a, y: prevSmoothed[0].y * inv + detectedQuad[0].y * a },
-              { x: prevSmoothed[1].x * inv + detectedQuad[1].x * a, y: prevSmoothed[1].y * inv + detectedQuad[1].y * a },
-              { x: prevSmoothed[2].x * inv + detectedQuad[2].x * a, y: prevSmoothed[2].y * inv + detectedQuad[2].y * a },
-              { x: prevSmoothed[3].x * inv + detectedQuad[3].x * a, y: prevSmoothed[3].y * inv + detectedQuad[3].y * a },
-            ];
-          }
-          smoothedDetQuad.setBlocking(activeQuad);
-          smoothMissCount.setBlocking(0);
+        lastStep = 'Uint8Array';
+        const data = new Uint8Array(buffer);
+
+        lastStep = 'bufferToMat';
+        opencvDirty = true;
+        if (yBytesPerRow === yWidth) {
+          gray = OpenCV.bufferToMat('uint8', yHeight, yWidth, 1, data);
         } else {
-          const misses = smoothMissCount.getDirty() + 1;
-          smoothMissCount.setBlocking(misses);
-          if (misses <= QUAD_SMOOTH_GRACE_FRAMES) {
-            activeQuad = smoothedDetQuad.getDirty();
-          } else {
-            smoothedDetQuad.setBlocking(null);
+          const tight = new Uint8Array(yWidth * yHeight);
+          for (let row = 0; row < yHeight; row += 1) {
+            const src = row * yBytesPerRow;
+            const dst = row * yWidth;
+            for (let col = 0; col < yWidth; col += 1) {
+              tight[dst + col] = data[src + col];
+            }
+          }
+          gray = OpenCV.bufferToMat('uint8', yHeight, yWidth, 1, tight);
+        }
+
+        // Centre-crop to the guide ROI. Buffer is sensor-landscape; portrait
+        // card → ROI long axis = buffer X. ROI aspect = MTG_LONG/MTG_SHORT.
+        const guideShortFraction = GUIDE_SHORT_FRACTION;
+        const guideLongAspect = MTG_LONG / MTG_SHORT; // 1.4
+        let roiH = Math.round(yHeight * guideShortFraction);
+        let roiW = Math.round(roiH * guideLongAspect);
+        if (roiW > yWidth * 0.95) {
+          roiW = Math.round(yWidth * 0.95);
+          roiH = Math.round(roiW / guideLongAspect);
+        }
+        roiX = Math.round((yWidth - roiW) / 2);
+        roiY = Math.round((yHeight - roiH) / 2);
+        roiWidth = roiW;
+        roiHeight = roiH;
+
+        lastStep = 'cropROI';
+        const grayRoi = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
+        const roiRect = OpenCV.createObject(ObjectType.Rect, roiX, roiY, roiW, roiH);
+        OpenCV.invoke('crop', gray, grayRoi, roiRect);
+
+        detWPlane = Math.min(DETECT_WIDTH, roiW);
+        detHPlane = Math.round((detWPlane * roiH) / roiW);
+        scalePlane = roiW / detWPlane;
+
+        lastStep = 'createSmall';
+        const small = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
+        const sizeSmall = OpenCV.createObject(ObjectType.Size, detWPlane, detHPlane);
+        lastStep = 'resize';
+        OpenCV.invoke('resize', grayRoi, small, sizeSmall, 0, 0, InterpolationFlags.INTER_AREA);
+
+        lastStep = 'mean.brightness';
+        const brightnessScalar = OpenCV.invoke('mean', small);
+        const brightnessJs = OpenCV.toJSValue(brightnessScalar);
+        brightnessRaw = brightnessJs.a;
+
+        // mean(|Laplacian|) rather than var(L): no separate squaring step.
+        lastStep = 'Laplacian';
+        const lapl = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_16SC1);
+        OpenCV.invoke('Laplacian', small, lapl, DataTypes.CV_16S, 3, 1, 0, BorderTypes.BORDER_DEFAULT);
+        lastStep = 'convertScaleAbs';
+        const laplAbs = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
+        OpenCV.invoke('convertScaleAbs', lapl, laplAbs, 1);
+        lastStep = 'mean.sharpness';
+        const sharpnessScalar = OpenCV.invoke('mean', laplAbs);
+        const sharpnessJs = OpenCV.toJSValue(sharpnessScalar);
+        sharpnessRaw = sharpnessJs.a;
+
+        lastStep = 'GaussianBlur';
+        const blurred = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
+        const blurKsize = OpenCV.createObject(ObjectType.Size, 5, 5);
+        OpenCV.invoke('GaussianBlur', small, blurred, blurKsize, 0);
+
+        lastStep = 'Canny';
+        const edges = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
+        OpenCV.invoke('Canny', blurred, edges, 30, 100);
+
+        lastStep = 'morphClose';
+        const morphKernel = OpenCV.invoke(
+          'getStructuringElement',
+          MorphShapes.MORPH_RECT,
+          OpenCV.createObject(ObjectType.Size, 5, 5),
+        );
+        const closed = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
+        OpenCV.invoke('morphologyEx', edges, closed, MorphTypes.MORPH_CLOSE, morphKernel);
+
+        lastStep = 'countNonZero';
+        edgePixelCount = OpenCV.invoke('countNonZero', closed).value;
+
+        lastStep = 'findContours';
+        const contours = OpenCV.createObject(ObjectType.MatVector);
+        OpenCV.invoke(
+          'findContours',
+          closed,
+          contours,
+          RetrievalModes.RETR_EXTERNAL,
+          ContourApproximationModes.CHAIN_APPROX_SIMPLE,
+        );
+
+        lastStep = 'toJSValue.contours';
+        const contourCount = OpenCV.toJSValue(contours).array.length;
+        contourCountForMetrics = contourCount;
+        const minArea = detWPlane * detHPlane * MIN_AREA_FRACTION;
+
+        for (let i = 0; i < contourCount; i += 1) {
+          const contour = OpenCV.copyObjectFromVector(contours, i);
+          const area = OpenCV.invoke('contourArea', contour, false).value;
+          if (area < minArea) continue;
+          largeContourCount += 1;
+
+          const rrect = OpenCV.invoke('minAreaRect', contour);
+          const rrectJs = OpenCV.toJSValue(rrect);
+          const rectArea = rrectJs.width * rrectJs.height;
+          if (rectArea <= 0) continue;
+          const fillRatio = area / rectArea;
+          const aspect =
+            Math.min(rrectJs.width, rrectJs.height) /
+            Math.max(rrectJs.width, rrectJs.height);
+
+          if (area > bestSeenArea) {
+            bestSeenArea = area;
+            largestContourFillPct = Math.round(fillRatio * 100);
+            largestContourAspect = aspect;
+          }
+
+          if (fillRatio < FILL_RATIO_MIN) continue;
+          if (Math.abs(aspect - MTG_ASPECT) > ASPECT_TOLERANCE) continue;
+
+          const angleRad = (rrectJs.angle * Math.PI) / 180;
+          const cosA = Math.cos(angleRad);
+          const sinA = Math.sin(angleRad);
+          const halfW = rrectJs.width / 2;
+          const halfH = rrectJs.height / 2;
+          const cx = rrectJs.centerX;
+          const cy = rrectJs.centerY;
+          const corners: Quad = [
+            { x: cx + (-halfW) * cosA - (-halfH) * sinA, y: cy + (-halfW) * sinA + (-halfH) * cosA },
+            { x: cx + halfW * cosA - (-halfH) * sinA, y: cy + halfW * sinA + (-halfH) * cosA },
+            { x: cx + halfW * cosA - halfH * sinA, y: cy + halfW * sinA + halfH * cosA },
+            { x: cx + (-halfW) * cosA - halfH * sinA, y: cy + (-halfW) * sinA + halfH * cosA },
+          ];
+          let clipped = false;
+          for (let k = 0; k < 4; k += 1) {
+            const p = corners[k];
+            if (
+              p.x < ROI_EDGE_MARGIN ||
+              p.y < ROI_EDGE_MARGIN ||
+              p.x > detWPlane - 1 - ROI_EDGE_MARGIN ||
+              p.y > detHPlane - 1 - ROI_EDGE_MARGIN
+            ) {
+              clipped = true;
+            }
+          }
+          if (clipped) {
+            clippedQuadCount += 1;
+            continue;
+          }
+          const ordered = orderQuadCorners(corners);
+
+          candidateQuadCount += 1;
+          if (area > bestArea) {
+            bestArea = area;
+            detectedQuad = ordered;
           }
         }
 
-        const absent = detectedQuad || clippedQuadCount > 0 ? 0 : cardAbsentFrames.getDirty() + 1;
-        cardAbsentFrames.setBlocking(absent);
-        if (absent >= CARD_REMOVED_MISS_FRAMES) {
+        lastStep = 'done';
+      } catch (e: unknown) {
+        pipelineError = truncatedErrorMessage(e);
+        quad.setBlocking(null);
+        metrics.setBlocking(pipelineMetrics());
+        stableFrames.setBlocking(0);
+        inBand.setBlocking(false);
+        return;
+      }
+
+      // Smooth the detection-space quad with a per-corner EMA. On a missed
+      // detection, hold the previous smoothed quad alive briefly so 1–2
+      // frame jitter doesn't reset the stable-frame counter.
+      let activeQuad: Quad | null = detectedQuad;
+      if (detectedQuad) {
+        const prevSmoothed = smoothedDetQuad.getDirty();
+        if (prevSmoothed) {
+          const a = QUAD_SMOOTH_ALPHA;
+          const inv = 1 - a;
+          activeQuad = [
+            { x: prevSmoothed[0].x * inv + detectedQuad[0].x * a, y: prevSmoothed[0].y * inv + detectedQuad[0].y * a },
+            { x: prevSmoothed[1].x * inv + detectedQuad[1].x * a, y: prevSmoothed[1].y * inv + detectedQuad[1].y * a },
+            { x: prevSmoothed[2].x * inv + detectedQuad[2].x * a, y: prevSmoothed[2].y * inv + detectedQuad[2].y * a },
+            { x: prevSmoothed[3].x * inv + detectedQuad[3].x * a, y: prevSmoothed[3].y * inv + detectedQuad[3].y * a },
+          ];
+        }
+        smoothedDetQuad.setBlocking(activeQuad);
+        smoothMissCount.setBlocking(0);
+      } else {
+        const misses = smoothMissCount.getDirty() + 1;
+        smoothMissCount.setBlocking(misses);
+        if (misses <= QUAD_SMOOTH_GRACE_FRAMES) {
+          activeQuad = smoothedDetQuad.getDirty();
+        } else {
+          smoothedDetQuad.setBlocking(null);
+        }
+      }
+
+      const absent = detectedQuad || clippedQuadCount > 0 ? 0 : cardAbsentFrames.getDirty() + 1;
+      cardAbsentFrames.setBlocking(absent);
+      if (absent >= CARD_REMOVED_MISS_FRAMES) {
+        lastCapture.setBlocking(null);
+      }
+
+      if (!activeQuad) {
+        quad.setBlocking(null);
+        history.setBlocking([]);
+        stableFrames.setBlocking(0);
+        inBand.setBlocking(false);
+        metrics.setBlocking({
+          ...pipelineMetrics(),
+          brightness: brightnessRaw,
+        });
+        return;
+      }
+
+      const prevHist = history.getDirty().slice();
+      prevHist.push(activeQuad);
+      if (prevHist.length > STABILITY_HISTORY) prevHist.shift();
+      history.setBlocking(prevHist);
+
+      const shortEdgeDet = quadShortEdge(activeQuad);
+      const stabilityCeiling = Math.max(STABILITY_CEILING_MIN, shortEdgeDet * STABILITY_CEILING_FRACTION);
+      const stability = stabilityScoreNormalised(activeQuad, prevHist, stabilityCeiling);
+
+      const coverage = coverageScore(activeQuad, detWPlane, detHPlane);
+
+      const sharpness =
+        sharpnessRaw <= 0 ? 0 : Math.min(1, sharpnessRaw / SHARPNESS_NORM_DIVISOR);
+
+      const brightnessFit = brightnessFitScore(brightnessRaw);
+
+      const composite =
+        tune.wStability * stability +
+        tune.wSharpness * sharpness +
+        tune.wCoverage * coverage +
+        tune.wBrightness * brightnessFit;
+
+      const hardFloorPass =
+        coverage >= HARD_FLOORS.coverage &&
+        stability >= HARD_FLOORS.stability &&
+        sharpness >= HARD_FLOORS.sharpness &&
+        brightnessRaw >= HARD_FLOORS.brightnessMin &&
+        brightnessRaw <= HARD_FLOORS.brightnessMax;
+
+      const thresholdHigh = tune.thresholdHigh;
+      const thresholdLow = thresholdHigh - SCAN_HYSTERESIS_BAND;
+      const wasInBand = inBand.getDirty();
+      let nowInBand = wasInBand;
+      if (!wasInBand && composite >= thresholdHigh) {
+        nowInBand = true;
+      } else if (wasInBand && composite < thresholdLow) {
+        nowInBand = false;
+      }
+      inBand.setBlocking(nowInBand);
+
+      const centroidX = (activeQuad[0].x + activeQuad[2].x) / 2;
+      const centroidY = (activeQuad[0].y + activeQuad[2].y) / 2;
+      const cooldown = lastCapture.getDirty();
+      let cooldownActive = false;
+      if (cooldown) {
+        const dx = centroidX - cooldown.centroidX;
+        const dy = centroidY - cooldown.centroidY;
+        if (Math.sqrt(dx * dx + dy * dy) < cooldown.shortEdge * SCAN_COOLDOWN_CENTROID_FRACTION) {
+          cooldownActive = true;
+        } else {
           lastCapture.setBlocking(null);
         }
-
-        if (!activeQuad) {
-          quad.setBlocking(null);
-          history.setBlocking([]);
-          stableFrames.setBlocking(0);
-          inBand.setBlocking(false);
-          metrics.setBlocking({
-            ...pipelineMetrics(),
-            brightness: brightnessRaw,
-          });
-          return;
-        }
-
-        const prevHist = history.getDirty().slice();
-        prevHist.push(activeQuad);
-        if (prevHist.length > STABILITY_HISTORY) prevHist.shift();
-        history.setBlocking(prevHist);
-
-        const shortEdgeDet = quadShortEdge(activeQuad);
-        const stabilityCeiling = Math.max(STABILITY_CEILING_MIN, shortEdgeDet * STABILITY_CEILING_FRACTION);
-        const stability = stabilityScoreNormalised(activeQuad, prevHist, stabilityCeiling);
-
-        const coverage = coverageScore(activeQuad, detWPlane, detHPlane);
-
-        const sharpness =
-          sharpnessRaw <= 0 ? 0 : Math.min(1, sharpnessRaw / SHARPNESS_NORM_DIVISOR);
-
-        const brightnessFit = brightnessFitScore(brightnessRaw);
-
-        const composite =
-          tune.wStability * stability +
-          tune.wSharpness * sharpness +
-          tune.wCoverage * coverage +
-          tune.wBrightness * brightnessFit;
-
-        const hardFloorPass =
-          coverage >= HARD_FLOORS.coverage &&
-          stability >= HARD_FLOORS.stability &&
-          sharpness >= HARD_FLOORS.sharpness &&
-          brightnessRaw >= HARD_FLOORS.brightnessMin &&
-          brightnessRaw <= HARD_FLOORS.brightnessMax;
-
-        const thresholdHigh = tune.thresholdHigh;
-        const thresholdLow = thresholdHigh - SCAN_HYSTERESIS_BAND;
-        const wasInBand = inBand.getDirty();
-        let nowInBand = wasInBand;
-        if (!wasInBand && composite >= thresholdHigh) {
-          nowInBand = true;
-        } else if (wasInBand && composite < thresholdLow) {
-          nowInBand = false;
-        }
-        inBand.setBlocking(nowInBand);
-
-        const centroidX = (activeQuad[0].x + activeQuad[2].x) / 2;
-        const centroidY = (activeQuad[0].y + activeQuad[2].y) / 2;
-        const cooldown = lastCapture.getDirty();
-        let cooldownActive = false;
-        if (cooldown) {
-          const dx = centroidX - cooldown.centroidX;
-          const dy = centroidY - cooldown.centroidY;
-          if (Math.sqrt(dx * dx + dy * dy) < cooldown.shortEdge * SCAN_COOLDOWN_CENTROID_FRACTION) {
-            cooldownActive = true;
-          } else {
-            lastCapture.setBlocking(null);
-          }
-        }
-
-        // Detection space → Y-plane buffer (the Mat the capture warp reads) → frame space.
-        const bufferQuad = activeQuad.map((p) => ({ x: p.x * scalePlane + roiX, y: p.y * scalePlane + roiY })) as Quad;
-        const sx = frameW / yWidth;
-        const sy = frameH / yHeight;
-        const frameQuad = bufferQuad.map((p) => ({ x: p.x * sx, y: p.y * sy })) as Quad;
-
-        quad.setBlocking(frameQuad);
-        const frameMetrics: DetectionMetrics = {
-          ...pipelineMetrics(),
-          score: composite,
-          stability,
-          sharpness,
-          coverage,
-          brightnessFit,
-          brightness: brightnessRaw,
-          hasQuad: true,
-          hardFloorPass,
-          inHysteresis: nowInBand,
-          cooldownActive,
-          historyDepth: prevHist.length,
-        };
-        metrics.setBlocking(frameMetrics);
-
-        if (!hardFloorPass || !nowInBand || cooldownActive) {
-          stableFrames.setBlocking(0);
-          return;
-        }
-
-        const nextStable = stableFrames.getDirty() + 1;
-        stableFrames.setBlocking(nextStable);
-        if (tune.autoCaptureEnabled && nextStable >= tune.minStableFrames) {
-          lastCapture.setBlocking({ centroidX, centroidY, shortEdge: shortEdgeDet });
-
-          // Warp the exact frame that passed the gates; `gray` lives until the outer finally's clearBuffers.
-          let captureUri = '';
-          let captureError = '';
-          const warpStartedAt = Date.now();
-          try {
-            const srcPt0 = OpenCV.createObject(ObjectType.Point2f, bufferQuad[0].x, bufferQuad[0].y);
-            const srcPt1 = OpenCV.createObject(ObjectType.Point2f, bufferQuad[1].x, bufferQuad[1].y);
-            const srcPt2 = OpenCV.createObject(ObjectType.Point2f, bufferQuad[2].x, bufferQuad[2].y);
-            const srcPt3 = OpenCV.createObject(ObjectType.Point2f, bufferQuad[3].x, bufferQuad[3].y);
-            const srcPts = OpenCV.createObject(ObjectType.Point2fVector, [srcPt0, srcPt1, srcPt2, srcPt3]);
-
-            const W = MTG_OUTPUT_WIDTH;
-            const H = MTG_OUTPUT_HEIGHT;
-            const dstPt0 = OpenCV.createObject(ObjectType.Point2f, 0, 0);
-            const dstPt1 = OpenCV.createObject(ObjectType.Point2f, W - 1, 0);
-            const dstPt2 = OpenCV.createObject(ObjectType.Point2f, W - 1, H - 1);
-            const dstPt3 = OpenCV.createObject(ObjectType.Point2f, 0, H - 1);
-            const dstPts = OpenCV.createObject(ObjectType.Point2fVector, [dstPt0, dstPt1, dstPt2, dstPt3]);
-
-            const transform = OpenCV.invoke('getPerspectiveTransform', srcPts, dstPts, DecompTypes.DECOMP_LU);
-            const warped = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
-            const outSize = OpenCV.createObject(ObjectType.Size, W, H);
-            const borderValue = OpenCV.createObject(ObjectType.Scalar, 0, 0, 0);
-            OpenCV.invoke(
-              'warpPerspective',
-              gray,
-              warped,
-              transform,
-              outSize,
-              InterpolationFlags.INTER_CUBIC,
-              BorderTypes.BORDER_CONSTANT,
-              borderValue,
-            );
-
-            const fileName = `lupira-scan-${now}.jpg`;
-            const cacheUri = `${CACHE_DIR_PREFIX}/${fileName}`;
-            const diskPath = cacheUri.replace(/^file:\/\//, '');
-            OpenCV.saveMatToFile(warped, diskPath, 'jpeg', MTG_OUTPUT_JPEG_QUALITY);
-            captureUri = cacheUri;
-          } catch (e: unknown) {
-            captureError = truncatedErrorMessage(e);
-          }
-
-          resetTracking();
-          runOnJS(triggerAutoCapture)(captureUri, frameQuad, { width: frameW, height: frameH }, {
-            metrics: frameMetrics,
-            stableFrames: nextStable,
-            sharpnessRaw,
-            bufferQuad,
-            bufferSize: { width: yWidth, height: yHeight },
-            roi: { x: roiX, y: roiY, width: roiWidth, height: roiHeight },
-            warpMs: Date.now() - warpStartedAt,
-            error: captureError,
-          });
-        }
-      } finally {
-        if (opencvDirty) {
-          OpenCV.clearBuffers();
-        }
-        frame.dispose();
       }
-    },
-  });
 
-  return { quad, metrics, stableFrames, frameOutput };
+      // Detection space → Y-plane buffer (the Mat the capture warp reads) → frame space.
+      const bufferQuad = activeQuad.map((p) => ({ x: p.x * scalePlane + roiX, y: p.y * scalePlane + roiY })) as Quad;
+      const sx = frameW / yWidth;
+      const sy = frameH / yHeight;
+      const frameQuad = bufferQuad.map((p) => ({ x: p.x * sx, y: p.y * sy })) as Quad;
+
+      quad.setBlocking(frameQuad);
+      const frameMetrics: DetectionMetrics = {
+        ...pipelineMetrics(),
+        score: composite,
+        stability,
+        sharpness,
+        coverage,
+        brightnessFit,
+        brightness: brightnessRaw,
+        hasQuad: true,
+        hardFloorPass,
+        inHysteresis: nowInBand,
+        cooldownActive,
+        historyDepth: prevHist.length,
+      };
+      metrics.setBlocking(frameMetrics);
+
+      if (!hardFloorPass || !nowInBand || cooldownActive) {
+        stableFrames.setBlocking(0);
+        return;
+      }
+
+      const nextStable = stableFrames.getDirty() + 1;
+      stableFrames.setBlocking(nextStable);
+      if (tune.autoCaptureEnabled && nextStable >= tune.minStableFrames) {
+        lastCapture.setBlocking({ centroidX, centroidY, shortEdge: shortEdgeDet });
+
+        // Warp the exact frame that passed the gates; `gray` lives until the outer finally's clearBuffers.
+        let captureUri = '';
+        let captureError = '';
+        const warpStartedAt = Date.now();
+        try {
+          const srcPt0 = OpenCV.createObject(ObjectType.Point2f, bufferQuad[0].x, bufferQuad[0].y);
+          const srcPt1 = OpenCV.createObject(ObjectType.Point2f, bufferQuad[1].x, bufferQuad[1].y);
+          const srcPt2 = OpenCV.createObject(ObjectType.Point2f, bufferQuad[2].x, bufferQuad[2].y);
+          const srcPt3 = OpenCV.createObject(ObjectType.Point2f, bufferQuad[3].x, bufferQuad[3].y);
+          const srcPts = OpenCV.createObject(ObjectType.Point2fVector, [srcPt0, srcPt1, srcPt2, srcPt3]);
+
+          const W = MTG_OUTPUT_WIDTH;
+          const H = MTG_OUTPUT_HEIGHT;
+          const dstPt0 = OpenCV.createObject(ObjectType.Point2f, 0, 0);
+          const dstPt1 = OpenCV.createObject(ObjectType.Point2f, W - 1, 0);
+          const dstPt2 = OpenCV.createObject(ObjectType.Point2f, W - 1, H - 1);
+          const dstPt3 = OpenCV.createObject(ObjectType.Point2f, 0, H - 1);
+          const dstPts = OpenCV.createObject(ObjectType.Point2fVector, [dstPt0, dstPt1, dstPt2, dstPt3]);
+
+          const transform = OpenCV.invoke('getPerspectiveTransform', srcPts, dstPts, DecompTypes.DECOMP_LU);
+          const warped = OpenCV.createObject(ObjectType.Mat, 0, 0, DataTypes.CV_8UC1);
+          const outSize = OpenCV.createObject(ObjectType.Size, W, H);
+          const borderValue = OpenCV.createObject(ObjectType.Scalar, 0, 0, 0);
+          OpenCV.invoke(
+            'warpPerspective',
+            gray,
+            warped,
+            transform,
+            outSize,
+            InterpolationFlags.INTER_CUBIC,
+            BorderTypes.BORDER_CONSTANT,
+            borderValue,
+          );
+
+          const fileName = `lupira-scan-${now}.jpg`;
+          const cacheUri = `${CACHE_DIR_PREFIX}/${fileName}`;
+          const diskPath = cacheUri.replace(/^file:\/\//, '');
+          OpenCV.saveMatToFile(warped, diskPath, 'jpeg', MTG_OUTPUT_JPEG_QUALITY);
+          captureUri = cacheUri;
+        } catch (e: unknown) {
+          captureError = truncatedErrorMessage(e);
+        }
+
+        resetTracking();
+        runOnJS(triggerAutoCapture)(captureUri, frameQuad, { width: frameW, height: frameH }, {
+          metrics: frameMetrics,
+          stableFrames: nextStable,
+          sharpnessRaw,
+          bufferQuad,
+          bufferSize: { width: yWidth, height: yHeight },
+          roi: { x: roiX, y: roiY, width: roiWidth, height: roiHeight },
+          warpMs: Date.now() - warpStartedAt,
+          error: captureError,
+        });
+      }
+    } finally {
+      if (opencvDirty) {
+        OpenCV.clearBuffers();
+      }
+      frame.dispose();
+    }
+  };
 }
 
 // --- Pure helpers (worklet-safe). Each is fully self-contained; cross-helper

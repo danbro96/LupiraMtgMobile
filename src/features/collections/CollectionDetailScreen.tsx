@@ -197,14 +197,7 @@ function RenameDialog({
   const submit = async () => {
     const name = draft.trim();
     if (!name || name === currentName) return;
-    setBusy(true);
-    try {
-      await onSubmit(name);
-    } catch (e: unknown) {
-      toastError(`Rename failed: ${(e as Error).message}`);
-    } finally {
-      setBusy(false);
-    }
+    await submitRename(name, onSubmit, setBusy);
   };
 
   return (
@@ -233,6 +226,21 @@ function RenameDialog({
       </Dialog>
     </Portal>
   );
+}
+
+async function submitRename(
+  name: string,
+  onSubmit: (name: string) => Promise<void>,
+  setBusy: (busy: boolean) => void,
+) {
+  setBusy(true);
+  try {
+    await onSubmit(name);
+  } catch (e: unknown) {
+    toastError(`Rename failed: ${(e as Error).message}`);
+  } finally {
+    setBusy(false);
+  }
 }
 
 const dialogStyles = StyleSheet.create({

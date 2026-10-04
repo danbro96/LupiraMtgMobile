@@ -3,7 +3,7 @@ import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button as PaperButton, Text } from 'react-native-paper';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { listCollections } from '../../api/generated/collections/collections';
@@ -32,6 +32,24 @@ type Styles = ReturnType<typeof makeStyles>;
 /** Scryfall `normal` images are 488×680. */
 const CARD_ASPECT = 488 / 680;
 
+async function runSelectionEdit(
+  selectionId: string,
+  key: string,
+  action: (selectionId: string) => Promise<unknown>,
+  queryClient: QueryClient,
+  setBusyKey: (key: string | null) => void,
+) {
+  setBusyKey(key);
+  try {
+    await action(selectionId);
+  } catch (err: unknown) {
+    toastError((err as Error).message);
+  } finally {
+    await queryClient.invalidateQueries({ queryKey: ['selection', selectionId] });
+    setBusyKey(null);
+  }
+}
+
 export function SelectionScreen() {
   const navigation = useNavigation<Nav>();
   const currentSelectionId = useSelection(s => s.currentSelectionId);
@@ -55,15 +73,7 @@ export function SelectionScreen() {
   const edit = useCallback(
     async (key: string, action: (selectionId: string) => Promise<unknown>) => {
       if (!currentSelectionId) return;
-      setBusyKey(key);
-      try {
-        await action(currentSelectionId);
-      } catch (err: unknown) {
-        toastError((err as Error).message);
-      } finally {
-        await queryClient.invalidateQueries({ queryKey: ['selection', currentSelectionId] });
-        setBusyKey(null);
-      }
+      await runSelectionEdit(currentSelectionId, key, action, queryClient, setBusyKey);
     },
     [currentSelectionId, queryClient],
   );

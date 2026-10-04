@@ -17,7 +17,7 @@ import { File } from 'expo-file-system';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ApiError } from '../../api/mutator';
 import { scanCard } from '../../api/scan';
-import type { CardCandidateDto, ScanResponse } from '../../api/generated/models';
+import type { CardCandidateDto, ScanResponse, SelectionResponse } from '../../api/generated/models';
 import { ScanStackParamList } from '../../navigation/types';
 import { useCurrentSelection, useCurrentSelectionQuery } from './useCurrentSelection';
 import { useScanSettings } from '../../store/scan-settings-store';
@@ -39,6 +39,7 @@ import {
   captureQueueReducer,
   needsReview,
   newCaptureId,
+  type CaptureAction,
   type CaptureId,
   type CaptureRecord,
 } from './captureQueueReducer';
@@ -183,32 +184,7 @@ export function ScanScreen() {
   );
 
   const autoAdd = useCallback(
-    async (id: CaptureId, top: CardCandidateDto) => {
-      try {
-        const { selectionId, instanceId } = await addCandidate(id, top, false);
-        hapticSuccess();
-        showBanner({
-          tone: 'success',
-          message: `${top.printing.name} added`,
-          action: { label: 'Undo', onPress: () => void undoAdd(id, selectionId, instanceId) },
-        });
-        traceScan('add', `auto-added ${top.printing.name}`, { captureId: id });
-      } catch (err: unknown) {
-        if (err instanceof ApiError && err.status === 409) {
-          traceScan('add', 'auto-add skipped: already in selection', { captureId: id, level: 'debug' });
-          showBanner({
-            tone: 'info',
-            message: `${top.printing.name} is already in the selection`,
-            action: {
-              label: 'Add another',
-              onPress: () => void addCandidate(id, top, true).then(hapticSuccess, (e: Error) => toastError(e.message)),
-            },
-          });
-          return;
-        }
-        traceScan('add', 'auto-add failed', { captureId: id, level: 'warning', data: describeError(err) });
-      }
-    },
+    (id: CaptureId, top: CardCandidateDto) => autoAddCandidate(id, top, { addCandidate, undoAdd, showBanner }),
     [addCandidate, showBanner, undoAdd],
   );
 
@@ -226,33 +202,8 @@ export function ScanScreen() {
   const uploadsPending = useRef(0);
 
   const upload = useCallback(
-    async (id: CaptureId, captureUri: string, queuedAt: number) => {
-      const uploadStartedAt = Date.now();
-      const queueMs = uploadStartedAt - queuedAt;
-      try {
-        const response = await scanCard(captureUri);
-        traceScan('result', `${response.confidence} · ${response.candidates[0]?.printing.name ?? 'no match'}`, {
-          captureId: id,
-          level: response.candidates.length === 0 ? 'warning' : 'info',
-          data: { queueMs, uploadMs: Date.now() - uploadStartedAt, ...summariseScanResponse(response) },
-        });
-        dispatch({ type: 'capture/recognised', id, response });
-
-        // Lower-confidence captures stay staged for tap-to-confirm review. Awaited so selection writes
-        // stay serial with the upload chain (concurrent first adds would each create a selection).
-        if (response.confidence === 'High' && response.candidates.length > 0) {
-          await autoAdd(id, response.candidates[0]);
-        }
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        traceScan('upload', 'scan request failed', {
-          captureId: id,
-          level: 'error',
-          data: { queueMs, uploadMs: Date.now() - uploadStartedAt, ...describeError(err) },
-        });
-        dispatch({ type: 'capture/error', id, message: msg });
-      }
-    },
+    (id: CaptureId, captureUri: string, queuedAt: number) =>
+      uploadCapture(id, captureUri, queuedAt, { dispatch, autoAdd }),
     [autoAdd],
   );
 
@@ -427,40 +378,17 @@ export function ScanScreen() {
   }, []);
 
   const onPick = useCallback(
-    async (record: CaptureRecord, candidate: CardCandidateDto) => {
-      if (record.state.kind !== 'recognised') return;
-      const previous = record.state.added;
-      setPickPending(true);
-      try {
-        if (previous) {
-          // The cache can lag a just-auto-added entry, so fall back to defaults rather than skipping the swap.
-          const attrs = selectionCardsRef.current?.find((e) => e.instanceId === previous.instanceId) ?? DEFAULT_ATTRIBUTES;
-          const selectionId = await ensureSelectionRef.current();
-          const [instanceId] = await replaceEntries(selectionId, [previous.instanceId], candidate.printing.id, attrs);
-          dispatch({ type: 'capture/added', id: record.id, added: { printingId: candidate.printing.id, instanceId } });
-          invalidateSelection();
-        } else {
-          try {
-            await addCandidate(record.id, candidate, false);
-          } catch (err: unknown) {
-            if (!(err instanceof ApiError && err.status === 409)) throw err;
-            const again = await confirm({
-              title: 'Already in selection',
-              message: `${candidate.printing.name} is already in your selection. Add another copy?`,
-              confirmLabel: 'Add another',
-            });
-            if (!again) return;
-            await addCandidate(record.id, candidate, true);
-          }
-        }
-        hapticSuccess();
-        finishReview(record.id);
-      } catch (err: unknown) {
-        toastError((err as Error).message);
-      } finally {
-        setPickPending(false);
-      }
-    },
+    (record: CaptureRecord, candidate: CardCandidateDto) =>
+      pickCandidate(record, candidate, {
+        ensureSelectionRef,
+        selectionCardsRef,
+        addCandidate,
+        confirm,
+        dispatch,
+        finishReview,
+        invalidateSelection,
+        setPickPending,
+      }),
     [addCandidate, confirm, finishReview, invalidateSelection],
   );
 
@@ -644,6 +572,145 @@ export function ScanScreen() {
       />
     </View>
   );
+}
+
+async function autoAddCandidate(
+  id: CaptureId,
+  top: CardCandidateDto,
+  {
+    addCandidate,
+    undoAdd,
+    showBanner,
+  }: {
+    addCandidate: (
+      id: CaptureId,
+      candidate: CardCandidateDto,
+      allowDuplicate: boolean,
+    ) => Promise<{ selectionId: string; instanceId: string }>;
+    undoAdd: (id: CaptureId, selectionId: string, instanceId: string) => Promise<void>;
+    showBanner: (b: Omit<ScanBannerState, 'nonce'>) => void;
+  },
+) {
+  try {
+    const { selectionId, instanceId } = await addCandidate(id, top, false);
+    hapticSuccess();
+    showBanner({
+      tone: 'success',
+      message: `${top.printing.name} added`,
+      action: { label: 'Undo', onPress: () => void undoAdd(id, selectionId, instanceId) },
+    });
+    traceScan('add', `auto-added ${top.printing.name}`, { captureId: id });
+  } catch (err: unknown) {
+    if (err instanceof ApiError && err.status === 409) {
+      traceScan('add', 'auto-add skipped: already in selection', { captureId: id, level: 'debug' });
+      showBanner({
+        tone: 'info',
+        message: `${top.printing.name} is already in the selection`,
+        action: {
+          label: 'Add another',
+          onPress: () => void addCandidate(id, top, true).then(hapticSuccess, (e: Error) => toastError(e.message)),
+        },
+      });
+      return;
+    }
+    traceScan('add', 'auto-add failed', { captureId: id, level: 'warning', data: describeError(err) });
+  }
+}
+
+async function uploadCapture(
+  id: CaptureId,
+  captureUri: string,
+  queuedAt: number,
+  {
+    dispatch,
+    autoAdd,
+  }: {
+    dispatch: React.Dispatch<CaptureAction>;
+    autoAdd: (id: CaptureId, top: CardCandidateDto) => Promise<void>;
+  },
+) {
+  const uploadStartedAt = Date.now();
+  const queueMs = uploadStartedAt - queuedAt;
+  try {
+    const response = await scanCard(captureUri);
+    traceScan('result', `${response.confidence} · ${response.candidates[0]?.printing.name ?? 'no match'}`, {
+      captureId: id,
+      level: response.candidates.length === 0 ? 'warning' : 'info',
+      data: { queueMs, uploadMs: Date.now() - uploadStartedAt, ...summariseScanResponse(response) },
+    });
+    dispatch({ type: 'capture/recognised', id, response });
+
+    // Lower-confidence captures stay staged for tap-to-confirm review. Awaited so selection writes
+    // stay serial with the upload chain (concurrent first adds would each create a selection).
+    if (response.confidence === 'High' && response.candidates.length > 0) {
+      await autoAdd(id, response.candidates[0]);
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    traceScan('upload', 'scan request failed', {
+      captureId: id,
+      level: 'error',
+      data: { queueMs, uploadMs: Date.now() - uploadStartedAt, ...describeError(err) },
+    });
+    dispatch({ type: 'capture/error', id, message: msg });
+  }
+}
+
+async function pickCandidate(
+  record: CaptureRecord,
+  candidate: CardCandidateDto,
+  {
+    ensureSelectionRef,
+    selectionCardsRef,
+    addCandidate,
+    confirm,
+    dispatch,
+    finishReview,
+    invalidateSelection,
+    setPickPending,
+  }: {
+    ensureSelectionRef: React.RefObject<() => Promise<string>>;
+    selectionCardsRef: React.RefObject<SelectionResponse['cards'] | undefined>;
+    addCandidate: (id: CaptureId, candidate: CardCandidateDto, allowDuplicate: boolean) => Promise<unknown>;
+    confirm: ReturnType<typeof useConfirm>;
+    dispatch: React.Dispatch<CaptureAction>;
+    finishReview: (doneId: CaptureId) => void;
+    invalidateSelection: () => void;
+    setPickPending: (pending: boolean) => void;
+  },
+) {
+  if (record.state.kind !== 'recognised') return;
+  const previous = record.state.added;
+  setPickPending(true);
+  try {
+    if (previous) {
+      // The cache can lag a just-auto-added entry, so fall back to defaults rather than skipping the swap.
+      const attrs = selectionCardsRef.current?.find((e) => e.instanceId === previous.instanceId) ?? DEFAULT_ATTRIBUTES;
+      const selectionId = await ensureSelectionRef.current();
+      const [instanceId] = await replaceEntries(selectionId, [previous.instanceId], candidate.printing.id, attrs);
+      dispatch({ type: 'capture/added', id: record.id, added: { printingId: candidate.printing.id, instanceId } });
+      invalidateSelection();
+    } else {
+      try {
+        await addCandidate(record.id, candidate, false);
+      } catch (err: unknown) {
+        if (!(err instanceof ApiError && err.status === 409)) throw err;
+        const again = await confirm({
+          title: 'Already in selection',
+          message: `${candidate.printing.name} is already in your selection. Add another copy?`,
+          confirmLabel: 'Add another',
+        });
+        if (!again) return;
+        await addCandidate(record.id, candidate, true);
+      }
+    }
+    hapticSuccess();
+    finishReview(record.id);
+  } catch (err: unknown) {
+    toastError((err as Error).message);
+  } finally {
+    setPickPending(false);
+  }
 }
 
 function logCropFile(captureId: string, uri: string, warpMs: number) {

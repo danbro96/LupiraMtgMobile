@@ -31,6 +31,36 @@ function isAdminFromClaims(claims: Record<string, unknown>): boolean {
   return Array.isArray(groups) && groups.some(g => ADMIN_GROUPS.includes(String(g)));
 }
 
+async function completeSignIn(
+  grant: Parameters<typeof exchangeAuthCode>[0],
+  setBusy: (busy: boolean) => void,
+  setError: (error: string | null) => void,
+) {
+  setBusy(true);
+  setError(null);
+  try {
+    const token = await exchangeAuthCode(grant);
+    const claims = decodeJwt(token.idToken ?? token.accessToken);
+    const sub =
+      (claims.email as string) ?? (claims.preferred_username as string) ?? (claims.sub as string) ?? '';
+    const displayName = (claims.name as string) ?? (claims.given_name as string) ?? undefined;
+    await useAuth.getState().setSession(
+      {
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+        expiresAt: Date.now() + (token.expiresIn ?? 3600) * 1000,
+      },
+      { sub, displayName, isAdmin: isAdminFromClaims(claims) },
+    );
+    logAuth('setSession', 'authed=true');
+  } catch (e) {
+    logAuth('exchange:error', e instanceof Error ? e.message : String(e));
+    setError(e instanceof Error ? e.message : String(e));
+  } finally {
+    setBusy(false);
+  }
+}
+
 export function LoginScreen() {
   const mtgApiUrl = useAuth(s => s.mtgApiUrl);
   const setApiUrl = useAuth(s => s.setApiUrl);
@@ -82,36 +112,11 @@ export function LoginScreen() {
     const tokenEndpoint = discovery.tokenEndpoint;
     const code = response.params.code;
 
-    void (async () => {
-      setBusy(true);
-      setError(null);
-      try {
-        const token = await exchangeAuthCode({
-          tokenEndpoint,
-          code,
-          redirectUri,
-          codeVerifier: request.codeVerifier,
-        });
-        const claims = decodeJwt(token.idToken ?? token.accessToken);
-        const sub =
-          (claims.email as string) ?? (claims.preferred_username as string) ?? (claims.sub as string) ?? '';
-        const displayName = (claims.name as string) ?? (claims.given_name as string) ?? undefined;
-        await useAuth.getState().setSession(
-          {
-            accessToken: token.accessToken,
-            refreshToken: token.refreshToken,
-            expiresAt: Date.now() + (token.expiresIn ?? 3600) * 1000,
-          },
-          { sub, displayName, isAdmin: isAdminFromClaims(claims) },
-        );
-        logAuth('setSession', 'authed=true');
-      } catch (e) {
-        logAuth('exchange:error', e instanceof Error ? e.message : String(e));
-        setError(e instanceof Error ? e.message : String(e));
-      } finally {
-        setBusy(false);
-      }
-    })();
+    void completeSignIn(
+      { tokenEndpoint, code, redirectUri, codeVerifier: request.codeVerifier },
+      setBusy,
+      setError,
+    );
   }, [response, discovery, request, redirectUri]);
 
   const onSaveApi = async () => {
@@ -121,11 +126,7 @@ export function LoginScreen() {
       return;
     }
     setSavingApi(true);
-    try {
-      await setApiUrl(url);
-    } finally {
-      setSavingApi(false);
-    }
+    await setApiUrl(url).finally(() => setSavingApi(false));
   };
 
   return (

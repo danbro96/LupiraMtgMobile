@@ -32,7 +32,7 @@ function useAllSets() {
     staleTime: Infinity,
     queryFn: async ({ signal }) => {
       const all: SetDto[] = [];
-      for (;;) {
+      while (true) {
         const page = await listSets({ sort: 'releasedAt', order: 'desc', take: SET_PAGE, skip: all.length }, { signal });
         all.push(...page.results);
         if (!page.results.length || all.length >= page.total) return all;
