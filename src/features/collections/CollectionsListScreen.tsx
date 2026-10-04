@@ -13,11 +13,11 @@ import type {
   CollectionDto,
 } from '../../api/generated/models';
 import { CollectionsStackParamList } from '../../navigation/types';
-import { Button } from '../../ui/components/Button';
-import { TextField } from '../../ui/components/TextField';
+import { Button } from '@danbro96/lupira-expo-paper/components/Button';
+import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { cardSurface, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
-import { toastError } from '../../feedback/toast';
+import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 
 type Nav = NativeStackNavigationProp<CollectionsStackParamList, 'Collections'>;
 

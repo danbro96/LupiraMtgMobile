@@ -1,7 +1,7 @@
-import { DARK, LIGHT, type ColorScheme } from './tokens/color';
+import { darkColors as coreDark, lightColors as coreLight, type Palette as CorePalette } from '@danbro96/lupira-tokens-core/color';
 
 /** The shared estate core plus MTG's own status semantics. */
-export interface Palette extends ColorScheme {
+export interface Palette extends CorePalette {
   warning: string;
   success: string;
   /** Backdrop behind a destructive/error notice. */
@@ -9,14 +9,14 @@ export interface Palette extends ColorScheme {
 }
 
 export const lightColors: Palette = {
-  ...LIGHT,
+  ...coreLight,
   warning: '#5b4b18',
   success: '#1f7a4d',
   dangerBg: '#fbe9e7',
 };
 
 export const darkColors: Palette = {
-  ...DARK,
+  ...coreDark,
   warning: '#d8b24a',
   success: '#5fd49b',
   dangerBg: '#2a1414',

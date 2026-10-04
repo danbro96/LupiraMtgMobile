@@ -10,12 +10,12 @@ import { listCollections, createCollection } from '../../api/generated/collectio
 import type { CollectionDto } from '../../api/generated/models';
 import { useSelection } from '../../store/selection-store';
 import { ScanStackParamList } from '../../navigation/types';
-import { Button } from '../../ui/components/Button';
-import { TextField } from '../../ui/components/TextField';
+import { Button } from '@danbro96/lupira-expo-paper/components/Button';
+import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { cardSurface, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
-import { toastError } from '../../feedback/toast';
-import { hapticSelection } from '../../feedback/haptics';
+import { toastError } from '@danbro96/lupira-expo-feedback/toast';
+import { hapticSelection } from '@danbro96/lupira-expo-feedback/haptics';
 import { useCurrentSelectionQuery } from './useCurrentSelection';
 import { useCommitSelection } from './useCommitSelection';
 import { describeSummary, summariseSelection } from './selectionGroups';

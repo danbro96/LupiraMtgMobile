@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { SettingsButton } from '../ui/components/SettingsButton';
+import { SettingsButton } from '@danbro96/lupira-expo-paper/components/SettingsButton';
 import { ScanScreen } from '../features/scan/ScanScreen';
 import { SelectionScreen } from '../features/scan/SelectionScreen';
 import { PickCollectionScreen } from '../features/scan/PickCollectionScreen';

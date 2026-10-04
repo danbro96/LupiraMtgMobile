@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { SettingsButton } from '../ui/components/SettingsButton';
+import { SettingsButton } from '@danbro96/lupira-expo-paper/components/SettingsButton';
 import { SearchScreen } from '../features/search/SearchScreen';
 import { CardDetailScreen } from '../features/search/CardDetailScreen';
 import { PrintingDetailScreen } from '../features/search/PrintingDetailScreen';

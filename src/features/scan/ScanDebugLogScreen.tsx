@@ -4,7 +4,7 @@ import { Button, SegmentedButtons, Text } from 'react-native-paper';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { toast, toastError } from '../../feedback/toast';
+import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
 import {

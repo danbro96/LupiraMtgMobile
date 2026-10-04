@@ -1,6 +1,6 @@
 import { createSelectionCard, deleteSelectionCard } from '../../api/generated/selections/selections';
 import type { SelectionEntryDto } from '../../api/generated/models';
-import { ApiError } from '../../api/mutator';
+import { ApiError } from '@danbro96/lupira-http/apiError';
 import type { EntryAttributes } from './selectionGroups';
 
 export const DEFAULT_ATTRIBUTES: EntryAttributes = { isFoil: false, condition: 'NM', language: 'en' };

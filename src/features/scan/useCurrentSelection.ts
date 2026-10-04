@@ -5,7 +5,7 @@ import {
   getSelection,
   createSelection,
 } from '../../api/generated/selections/selections';
-import { ApiError } from '../../api/mutator';
+import { ApiError } from '@danbro96/lupira-http/apiError';
 
 /**
  * Returns the current selection id, lazily creating one when missing or expired.

@@ -12,8 +12,8 @@ import {
   useScanSettings,
 } from '../../store/scan-settings-store';
 import type { RootStackParamList } from '../../navigation/types';
-import { Button } from '../../ui/components/Button';
-import { useConfirm } from '../../ui/components/ConfirmDialog';
+import { Button } from '@danbro96/lupira-expo-paper/components/Button';
+import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
 import { spacing, useColors, type Palette } from '../../ui/theme';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'ScanSettings'>;

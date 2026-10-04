@@ -2,8 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { commitSelection } from '../../api/generated/selections/selections';
 import type { CommitSelectionResponse } from '../../api/generated/models';
 import { useSelection } from '../../store/selection-store';
-import { toast, toastError } from '../../feedback/toast';
-import { hapticSuccess } from '../../feedback/haptics';
+import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
+import { hapticSuccess } from '@danbro96/lupira-expo-feedback/haptics';
 
 /** Commits the whole selection into a collection and remembers that collection as the next default. */
 export function useCommitSelection(selectionId: string | null, onDone: () => void) {

@@ -29,7 +29,7 @@ Admin = `groups` claim. Tokens live in `expo-secure-store`; refreshed on launch 
 
 ## Running locally
 
-Needs a **dev build** (native modules + custom scheme) — Expo Go won't work.
+Needs a **dev build** (native modules + custom scheme) — Expo Go won't work. `npm install` needs `PACKAGES_TOKEN` (a PAT with `read:packages`) for the `@danbro96` packages on GitHub Packages; EAS builds need it as an EAS secret.
 
 ```sh
 npm install
@@ -42,7 +42,7 @@ API base URL defaults to `https://mtg-api.lupira.com` (`src/config.ts`); overrid
 
 ## UI
 
-react-native-paper 5 (MD3), light/dark following the system — the same kit as the other Lupira mobile apps (Tasks, Cal, Assistant). `src/ui/theme/tokens/` is a copy of the estate token core; check drift with DevOps `Guides/check-token-drift.sh`. Icons = MaterialIcons via `src/ui/icons.ts` (`ICONS.x`, never bare names — `npm test` fails on unknown glyphs). The camera HUD stays fixed-dark over the feed.
+react-native-paper 5 (MD3), light/dark following the system — the shared kit from the LupiraPlatform `@danbro96/lupira-*` packages (Paper components, toast/haptics, OTA auto-update and build info, OIDC client, `ApiError`). The core palette, spacing and radii come from `@danbro96/lupira-tokens-core`; `src/ui/theme/colors.ts` adds MTG's own status colours. Icons = MaterialIcons via `src/ui/icons.ts` (`ICONS.x`, never bare names — `npm test` fails on unknown glyphs). The camera HUD stays fixed-dark over the feed.
 
 Card symbols (mana, `{T}`, `{Q}`, hybrid, Phyrexian, …) come from [Scryfall's symbology](https://scryfall.com/docs/api/card-symbols), pre-converted to react-native-svg node trees in `src/ui/symbols/generated/` (`npm run fetch:symbols` to refresh). `SymbolText` renders rules text with inline symbols and italic reminder text; `ManaCost` renders a cost. Symbols are © Wizards of the Coast, used under the [Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy).
 
@@ -71,13 +71,12 @@ LupiraMtgMobile/
 ├── scripts/               fetch-openapi.mjs · fetch-symbols.mjs
 └── src/
     ├── api/                 generated client, mutator, scan upload hook
-    ├── auth/                OIDC config + token exchange/refresh
-    ├── feedback/            toast + haptics
+    ├── auth/                OIDC config + client
     ├── features/            collections · me (login) · scan · search · settings
     ├── navigation/          RootStack (auth gate + Settings), tabs, per-tab stacks
     ├── observability/       Sentry breadcrumbs
     ├── query/               react-query client
     ├── store/               Zustand (auth, scan settings, selection)
-    ├── ui/                  theme (tokens, Paper/nav themes), shared components, ICONS, card symbols
+    ├── ui/                  theme (MTG palette, Paper/nav themes), ICONS, card symbols
     └── config.ts            defaults
 ```

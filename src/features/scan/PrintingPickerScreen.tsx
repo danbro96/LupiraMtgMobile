@@ -14,8 +14,8 @@ import { useCurrentSelection } from './useCurrentSelection';
 import { addEntry, DEFAULT_ATTRIBUTES, replaceEntries } from './selectionEdits';
 import { cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
-import { toastError } from '../../feedback/toast';
-import { hapticSuccess } from '../../feedback/haptics';
+import { toastError } from '@danbro96/lupira-expo-feedback/toast';
+import { hapticSuccess } from '@danbro96/lupira-expo-feedback/haptics';
 
 type Nav = NativeStackNavigationProp<ScanStackParamList, 'PrintingPicker'>;
 type Route = RouteProp<ScanStackParamList, 'PrintingPicker'>;

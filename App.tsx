@@ -7,15 +7,15 @@ import { PaperProvider } from 'react-native-paper';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './src/query/queryClient';
 import { RootStack } from './src/navigation/RootStack';
-import { useAutoUpdate } from './src/ui/hooks/useAutoUpdate';
+import { useAutoUpdate } from '@danbro96/lupira-expo-diagnostics/useAutoUpdate';
 import { useAuth } from './src/store/auth-store';
-import { ToastHost } from './src/ui/components/ToastHost';
-import { ConfirmDialogHost } from './src/ui/components/ConfirmDialog';
+import { ToastHost } from '@danbro96/lupira-expo-paper/components/ToastHost';
+import { ConfirmDialogHost } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
 import { navDark, navLight, paperDark, paperLight } from './src/ui/theme';
-import { paperSettings } from './src/ui/theme/paperSettings';
+import { paperSettings } from '@danbro96/lupira-expo-paper/theme/paperSettings';
 import * as Sentry from '@sentry/react-native';
 import { SENTRY_DSN } from './src/config';
-import { UPDATE_CHANNEL, UPDATE_ID } from './src/ui/buildInfo';
+import { UPDATE_CHANNEL, UPDATE_ID } from '@danbro96/lupira-expo-diagnostics/buildInfo';
 
 Sentry.init({
   dsn: SENTRY_DSN,

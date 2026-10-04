@@ -1,20 +1,5 @@
+import { ApiError } from '@danbro96/lupira-http/apiError';
 import { useAuth } from '../store/auth-store';
-
-/**
- * Single-axis error class thrown for every non-2xx response. Consumers
- * downstream (e.g. the gallery's add-to-selection 409 handler) check
- * `err.status` to branch on specific HTTP codes — that contract stays the
- * same after the migration off the hand-typed client.
- */
-export class ApiError extends Error {
-  status: number;
-
-  constructor(status: number, message: string) {
-    super(message);
-    this.status = status;
-    this.name = 'ApiError';
-  }
-}
 
 /**
  * Custom fetch invoked by every Orval-generated request. Returns the parsed body, matching

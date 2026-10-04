@@ -13,11 +13,12 @@ import {
   OIDC_SCHEME,
   OIDC_SCOPES,
 } from '../../auth/oidcConfig';
-import { decodeJwt, exchangeAuthCode } from '../../auth/oidc';
+import { decodeJwt } from '@danbro96/lupira-expo-oidc/oidc';
+import { oidc } from '../../auth/oidc';
 import { logAuth } from '../../auth/authDebug';
-import { Button } from '../../ui/components/Button';
-import { TextField } from '../../ui/components/TextField';
-import { toastError } from '../../feedback/toast';
+import { Button } from '@danbro96/lupira-expo-paper/components/Button';
+import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
+import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
 
@@ -32,14 +33,14 @@ function isAdminFromClaims(claims: Record<string, unknown>): boolean {
 }
 
 async function completeSignIn(
-  grant: Parameters<typeof exchangeAuthCode>[0],
+  grant: Parameters<typeof oidc.exchangeAuthCode>[0],
   setBusy: (busy: boolean) => void,
   setError: (error: string | null) => void,
 ) {
   setBusy(true);
   setError(null);
   try {
-    const token = await exchangeAuthCode(grant);
+    const token = await oidc.exchangeAuthCode(grant);
     const claims = decodeJwt(token.idToken ?? token.accessToken);
     const sub =
       (claims.email as string) ?? (claims.preferred_username as string) ?? (claims.sub as string) ?? '';

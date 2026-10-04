@@ -20,11 +20,11 @@ import {
   type SelectionGroup,
 } from './selectionGroups';
 import { ScanStackParamList } from '../../navigation/types';
-import { useConfirm } from '../../ui/components/ConfirmDialog';
+import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
 import { HIT_SLOP, cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
-import { toast, toastError } from '../../feedback/toast';
-import { hapticSelection } from '../../feedback/haptics';
+import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
+import { hapticSelection } from '@danbro96/lupira-expo-feedback/haptics';
 
 type Nav = NativeStackNavigationProp<ScanStackParamList, 'Selection'>;
 type Styles = ReturnType<typeof makeStyles>;

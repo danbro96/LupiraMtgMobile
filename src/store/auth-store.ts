@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import * as Sentry from '@sentry/react-native';
 import { DEFAULT_MTG_API_URL } from '../config';
-import { refreshTokens, RefreshError } from '../auth/oidc';
+import { RefreshError } from '@danbro96/lupira-expo-oidc/oidc';
+import { oidc } from '../auth/oidc';
 import { logAuth } from '../auth/authDebug';
 
 // One shared in-flight refresh. Concurrent callers await it instead of each POSTing the
@@ -161,7 +162,7 @@ export const useAuth = create<AuthState & AuthActions>((set, get) => ({
     if (refreshing) return refreshing;
     refreshing = (async (): Promise<string | null> => {
       try {
-        const t = await refreshTokens(refreshToken);
+        const t = await oidc.refreshTokens(refreshToken);
         if (!t.accessToken) return token;
         const next: Session = {
           accessToken: t.accessToken,

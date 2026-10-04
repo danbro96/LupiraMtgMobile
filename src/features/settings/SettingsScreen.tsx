@@ -5,10 +5,10 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../store/auth-store';
 import { APP_VERSION } from '../../config';
-import { UPDATE_LABEL } from '../../ui/buildInfo';
+import { UPDATE_LABEL } from '@danbro96/lupira-expo-diagnostics/buildInfo';
 import type { RootStackParamList } from '../../navigation/types';
-import { Button } from '../../ui/components/Button';
-import { useConfirm } from '../../ui/components/ConfirmDialog';
+import { Button } from '@danbro96/lupira-expo-paper/components/Button';
+import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
 import { radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
 
