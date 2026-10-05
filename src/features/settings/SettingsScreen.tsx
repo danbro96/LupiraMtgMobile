@@ -5,11 +5,9 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../store/auth-store';
 import { usePrefs } from '../../store/prefs-store';
-import { APP_VERSION } from '../../config';
-import { UPDATE_LABEL } from '@danbro96/lupira-expo-diagnostics/buildInfo';
 import type { RootStackParamList } from '../../navigation/types';
 import { IdentityHeader } from '@danbro96/lupira-expo-paper/components/IdentityHeader';
-import { VersionLine } from '@danbro96/lupira-expo-paper/components/VersionLine';
+import { VersionLine } from '@danbro96/lupira-expo-diagnostics/VersionLine';
 import { spacing, useColors } from '../../ui/theme';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
@@ -63,7 +61,7 @@ export function SettingsScreen() {
       )}
 
       <List.Subheader>About</List.Subheader>
-      <VersionLine app="Lupira MTG" version={APP_VERSION} updateLabel={UPDATE_LABEL} />
+      <VersionLine />
     </ScrollView>
   );
 }

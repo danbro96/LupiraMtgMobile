@@ -15,21 +15,15 @@ import { navDark, navLight, paperDark, paperLight } from './src/ui/theme';
 import { paperSettings } from '@danbro96/lupira-expo-paper/theme/paperSettings';
 import * as Sentry from '@sentry/react-native';
 import { SENTRY_DSN } from './src/config';
-import { UPDATE_CHANNEL, UPDATE_ID } from '@danbro96/lupira-expo-diagnostics/buildInfo';
+import { initSentry } from '@danbro96/lupira-expo-diagnostics/initSentry';
 
-Sentry.init({
-  dsn: SENTRY_DSN,
-
-  // Attaches IP address, cookies and user to every event.
-  sendDefaultPii: true,
-
+initSentry(SENTRY_DSN, {
+  // Replays and logs stay on for this app.
   enableLogs: true,
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1,
   integrations: [Sentry.mobileReplayIntegration()],
 });
-Sentry.setTag('update_id', UPDATE_ID ?? 'none');
-Sentry.setTag('update_channel', UPDATE_CHANNEL ?? 'none');
 
 export default Sentry.wrap(function App() {
   useAutoUpdate();
