@@ -61,6 +61,7 @@ export function PickCollectionScreen() {
       <View style={styles.createBlock}>
         <View style={styles.createRow}>
           <TextField
+            style={styles.grow}
             value={newName}
             onChangeText={setNewName}
             onSubmitEditing={onCreate}
@@ -154,6 +155,7 @@ const makeStyles = (c: Palette) =>
     container: { flex: 1, backgroundColor: c.bg },
     createBlock: { padding: spacing.lg, paddingBottom: spacing.md },
     createRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    grow: { flex: 1 },
     center: { padding: spacing.xl, alignItems: 'center' },
     list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl, gap: spacing.sm },
     row: {

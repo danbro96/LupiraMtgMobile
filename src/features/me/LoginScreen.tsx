@@ -168,7 +168,6 @@ export function LoginScreen() {
               autoCorrect={false}
               keyboardType="url"
               placeholder="https://mtg-api.lupira.com"
-              style={styles.input}
             />
             <Text style={styles.hint}>Override for dev (e.g. http://192.168.x.x:8080).</Text>
             <Button
@@ -206,5 +205,4 @@ const makeStyles = (c: Palette) =>
     hint: { marginTop: spacing.md, fontSize: 11, color: c.textDisabled },
     advancedToggle: { marginTop: spacing.lg },
     formGroup: { width: '100%', maxWidth: 360, gap: spacing.sm },
-    input: { flex: 0 },
   });

@@ -135,7 +135,6 @@ export function SearchFiltersSheet({
                   onChangeText={setSetQuery}
                   autoCapitalize="none"
                   autoCorrect={false}
-                  style={styles.setInput}
                 />
                 {setMatches.map(s => (
                   <List.Item
@@ -178,7 +177,6 @@ const makeStyles = (c: Palette) =>
     mana: { padding: 3, borderRadius: radii.round, borderWidth: 2, borderColor: 'transparent' },
     manaSelected: { borderColor: c.primary },
     manaDimmed: { opacity: 0.35 },
-    setInput: { flex: 0 },
     hint: { color: c.textSubtle, marginTop: spacing.sm },
     actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.xl },
   });

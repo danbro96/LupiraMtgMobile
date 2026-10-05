@@ -207,7 +207,6 @@ function RenameDialog({
             onChangeText={setDraft}
             maxLength={64}
             placeholder="Collection name"
-            style={dialogStyles.input}
           />
         </Dialog.Content>
         <Dialog.Actions>
@@ -239,10 +238,6 @@ async function submitRename(
     setBusy(false);
   }
 }
-
-const dialogStyles = StyleSheet.create({
-  input: { flex: 0 },
-});
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({

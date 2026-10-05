@@ -47,6 +47,7 @@ export function CollectionsListScreen() {
     <View style={styles.container}>
       <View style={styles.createRow}>
         <TextField
+          style={styles.grow}
           value={newName}
           onChangeText={setNewName}
           placeholder="New collection name"
@@ -117,6 +118,7 @@ const makeStyles = (c: Palette) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: c.bg },
     createRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.lg },
+    grow: { flex: 1 },
     createButton: { justifyContent: 'center' },
     list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl, gap: spacing.sm },
     row: { ...cardSurface(c), flexDirection: 'row', alignItems: 'center' },
