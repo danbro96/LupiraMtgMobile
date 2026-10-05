@@ -7,6 +7,7 @@ import { useAuth } from '../../store/auth-store';
 import { usePrefs } from '../../store/prefs-store';
 import type { RootStackParamList } from '../../navigation/types';
 import { IdentityHeader } from '@danbro96/lupira-expo-paper/components/IdentityHeader';
+import { SignOutButton } from '@danbro96/lupira-expo-paper/components/SignOutButton';
 import { VersionLine } from '@danbro96/lupira-expo-diagnostics/VersionLine';
 import { spacing, useColors } from '../../ui/theme';
 
@@ -26,6 +27,12 @@ export function SettingsScreen() {
   return (
     <ScrollView>
       <IdentityHeader name={user?.displayName ?? user?.sub ?? 'Not signed in'} sub={user?.displayName ? user.sub : undefined} />
+
+      <List.Subheader>Account</List.Subheader>
+      <SignOutButton
+        message="You will need to sign in with Authentik again to get back in."
+        onSignOut={() => void useAuth.getState().clearSession()}
+      />
       {user?.isAdmin ? <Text variant="labelMedium" style={[styles.role, { color: c.primary }]}>Admin</Text> : null}
 
       <List.Subheader>Scanning</List.Subheader>
