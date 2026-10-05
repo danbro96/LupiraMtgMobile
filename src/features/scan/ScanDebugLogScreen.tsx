@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { FlatList, Platform, Pressable, Share, StyleSheet, View } from 'react-native';
 import { Button, SegmentedButtons, Text } from 'react-native-paper';
 import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
@@ -69,7 +68,7 @@ export function ScanDebugLogScreen() {
   const tabEmpty = tab === 'pipeline' ? events.length === 0 : entries.length === 0;
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
       <View style={styles.toolbar}>
         <Text variant="bodySmall" style={styles.toolbarText}>
           {events.length} events · {entries.length} decisions
@@ -126,7 +125,7 @@ export function ScanDebugLogScreen() {
           showsVerticalScrollIndicator
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 

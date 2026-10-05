@@ -12,7 +12,7 @@ App: **Lupira MTG** · package `com.lupira.mtg` · scheme `lupiramtg` · EAS pro
 | Scan | On-device card detection (VisionCamera + fast-opencv), crop, upload to `/scans`; pick matches into a selection, file into a collection. |
 | Collections | List/detail of the user's collections. |
 
-Settings (gear in every tab header, pushed over the tabs): account + sign-out, scan tuning, decision log, API endpoint.
+Settings (avatar menu in every tab header, pushed over the tabs; sign-out is in that menu): scan tuning, decision log, API endpoint.
 
 ## Auth
 

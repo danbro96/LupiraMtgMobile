@@ -1,5 +1,4 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { ScrollView, StyleSheet } from 'react-native';
 import { List, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,10 +6,9 @@ import { useAuth } from '../../store/auth-store';
 import { APP_VERSION } from '../../config';
 import { UPDATE_LABEL } from '@danbro96/lupira-expo-diagnostics/buildInfo';
 import type { RootStackParamList } from '../../navigation/types';
-import { Button } from '@danbro96/lupira-expo-paper/components/Button';
-import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
-import { radii, spacing, useColors, type Palette } from '../../ui/theme';
-import { ICONS } from '../../ui/icons';
+import { IdentityHeader } from '@danbro96/lupira-expo-paper/components/IdentityHeader';
+import { VersionLine } from '@danbro96/lupira-expo-paper/components/VersionLine';
+import { spacing, useColors } from '../../ui/theme';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
@@ -18,35 +16,12 @@ export function SettingsScreen() {
   const navigation = useNavigation<Nav>();
   const user = useAuth(s => s.user);
   const mtgApiUrl = useAuth(s => s.mtgApiUrl);
-  const confirm = useConfirm();
   const c = useColors();
-  const styles = makeStyles(c);
-
-  async function signOut() {
-    const ok = await confirm({
-      title: 'Sign out?',
-      message: 'You will need to sign in with Authentik again to get back in.',
-      confirmLabel: 'Sign out',
-      destructive: true,
-    });
-    if (ok) await useAuth.getState().clearSession();
-  }
 
   return (
-    <ScrollView style={styles.fill} contentContainerStyle={styles.content}>
-      <View style={styles.identity}>
-        <View style={styles.avatar}>
-          <MaterialIcons name={ICONS.account} size={32} color={c.onPrimary} />
-        </View>
-        {user?.displayName ? <Text variant="titleLarge">{user.displayName}</Text> : null}
-        <Text variant="bodySmall" style={styles.email}>{user?.sub ?? 'Not signed in'}</Text>
-        {user?.isAdmin ? <Text variant="labelMedium" style={styles.role}>Admin</Text> : null}
-      </View>
-
-      <List.Subheader>Account</List.Subheader>
-      <View style={styles.action}>
-        <Button title="Sign out" variant="destructive" onPress={() => void signOut()} />
-      </View>
+    <ScrollView>
+      <IdentityHeader name={user?.displayName ?? user?.sub ?? 'Not signed in'} sub={user?.displayName ? user.sub : undefined} />
+      {user?.isAdmin ? <Text variant="labelMedium" style={[styles.role, { color: c.primary }]}>Admin</Text> : null}
 
       <List.Subheader>Scanning</List.Subheader>
       <List.Item
@@ -55,9 +30,6 @@ export function SettingsScreen() {
         descriptionNumberOfLines={3}
         onPress={() => navigation.navigate('ScanSettings')}
       />
-
-      <List.Subheader>About</List.Subheader>
-      <Text variant="labelSmall" style={styles.version}>Lupira MTG v{APP_VERSION} · {UPDATE_LABEL}</Text>
 
       <List.Subheader>Developer</List.Subheader>
       <List.Item
@@ -71,27 +43,14 @@ export function SettingsScreen() {
         description={mtgApiUrl}
         descriptionStyle={styles.mono}
       />
+
+      <List.Subheader>About</List.Subheader>
+      <VersionLine app="Lupira MTG" version={APP_VERSION} updateLabel={UPDATE_LABEL} />
     </ScrollView>
   );
 }
 
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    fill: { flex: 1, backgroundColor: c.bg },
-    content: { paddingBottom: spacing.xxl },
-    identity: { alignItems: 'center', paddingTop: spacing.xl, paddingBottom: spacing.lg },
-    avatar: {
-      width: 72,
-      height: 72,
-      borderRadius: radii.round,
-      backgroundColor: c.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: spacing.lg,
-    },
-    email: { color: c.textMuted },
-    version: { color: c.textSubtle, paddingHorizontal: spacing.lg },
-    role: { color: c.primary, marginTop: spacing.xs },
-    action: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-    mono: { fontFamily: 'monospace' },
-  });
+const styles = StyleSheet.create({
+  role: { textAlign: 'center', marginBottom: spacing.sm },
+  mono: { fontFamily: 'monospace' },
+});

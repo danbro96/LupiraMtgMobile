@@ -1,13 +1,12 @@
 import React from 'react';
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { useGetPrinting } from '../../api/generated/cards/cards';
-import { MtgStackParamList } from '../../navigation/types';
+import { RootStackParamList } from '../../navigation/types';
 import { cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
 
-type Route = RouteProp<MtgStackParamList, 'PrintingDetail'>;
+type Route = RouteProp<RootStackParamList, 'PrintingDetail'>;
 
 /**
  * Detail of one *specific* printing (set + collector number). Reached from CardDetailScreen's printings
@@ -23,7 +22,7 @@ export function PrintingDetailScreen() {
     useGetPrinting(params.oracleId, params.printingId);
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         {isLoading ? <ActivityIndicator style={styles.loading} /> : null}
         {isError ? (
@@ -66,7 +65,7 @@ export function PrintingDetailScreen() {
           </>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

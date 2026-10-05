@@ -3,7 +3,6 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { ActivityIndicator, Text } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -11,13 +10,13 @@ import {
   useListPrintings,
 } from '../../api/generated/cards/cards';
 import type { CardFaceDto, CardPrintingDto } from '../../api/generated/models';
-import { MtgStackParamList } from '../../navigation/types';
+import { RootStackParamList } from '../../navigation/types';
 import { cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { extraIdentity, ManaCost, SymbolText } from '../../ui/symbols';
 import { ColorPips } from './ColorPips';
 
-type Route = RouteProp<MtgStackParamList, 'CardDetail'>;
-type Nav = NativeStackNavigationProp<MtgStackParamList, 'CardDetail'>;
+type Route = RouteProp<RootStackParamList, 'CardDetail'>;
+type Nav = NativeStackNavigationProp<RootStackParamList, 'CardDetail'>;
 type Styles = ReturnType<typeof makeStyles>;
 
 /**
@@ -46,7 +45,7 @@ export function CardDetailScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         {cardQuery.isLoading ? <ActivityIndicator style={styles.loading} /> : null}
         {cardQuery.isError ? (
@@ -104,7 +103,7 @@ export function CardDetailScreen() {
           </>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

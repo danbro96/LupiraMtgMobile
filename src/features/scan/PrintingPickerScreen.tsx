@@ -3,13 +3,12 @@ import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Searchbar, Text } from 'react-native-paper';
 import { Image } from 'expo-image';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { keepPreviousData, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { listCards, useListPrintings } from '../../api/generated/cards/cards';
 import type { CardDto, CardPrintingDto } from '../../api/generated/models';
-import { ScanStackParamList } from '../../navigation/types';
+import { RootStackParamList } from '../../navigation/types';
 import { useCurrentSelection } from './useCurrentSelection';
 import { addEntry, DEFAULT_ATTRIBUTES, replaceEntries } from './selectionEdits';
 import { cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
@@ -17,8 +16,8 @@ import { ICONS } from '../../ui/icons';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { hapticSuccess } from '@danbro96/lupira-expo-feedback/haptics';
 
-type Nav = NativeStackNavigationProp<ScanStackParamList, 'PrintingPicker'>;
-type Route = RouteProp<ScanStackParamList, 'PrintingPicker'>;
+type Nav = NativeStackNavigationProp<RootStackParamList, 'PrintingPicker'>;
+type Route = RouteProp<RootStackParamList, 'PrintingPicker'>;
 type Styles = ReturnType<typeof makeStyles>;
 
 /** Scryfall `normal` images are 488×680. */
@@ -60,7 +59,7 @@ export function PrintingPickerScreen() {
 
   if (oracleId) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <View style={styles.container}>
         {!params.oracleId ? (
           <Pressable style={styles.back} onPress={() => setOracleId(null)}>
             <MaterialIcons name={ICONS.chevronLeft} size={20} color={c.primary} />
@@ -85,12 +84,12 @@ export function PrintingPickerScreen() {
           )}
         />
         {saving ? <ActivityIndicator style={styles.saving} /> : null}
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
       <Searchbar
         value={query}
         onChangeText={setQuery}
@@ -116,7 +115,7 @@ export function PrintingPickerScreen() {
           )
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -150,8 +149,9 @@ async function pickPrinting(
     await queryClient.invalidateQueries({ queryKey: ['selection'] });
     hapticSuccess();
     if (params.captureId) {
-      navigation.popTo('Scan', {
-        manualMatch: { captureId: params.captureId, printingId: printing.id, instanceId: instanceIds[0] },
+      navigation.popTo('Tabs', {
+        screen: 'Scan',
+        params: { manualMatch: { captureId: params.captureId, printingId: printing.id, instanceId: instanceIds[0] } },
       });
     } else {
       navigation.goBack();

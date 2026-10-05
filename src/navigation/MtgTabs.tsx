@@ -1,9 +1,10 @@
 import React from 'react';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MtgStack } from './MtgStack';
-import { ScanStack } from './ScanStack';
-import { CollectionsStack } from './CollectionsStack';
+import { AccountMenu } from '../features/me/AccountMenu';
+import { SearchScreen } from '../features/search/SearchScreen';
+import { ScanScreen } from '../features/scan/ScanScreen';
+import { CollectionsListScreen } from '../features/collections/CollectionsListScreen';
 import { MtgTabParamList } from './types';
 import { useColors } from '../ui/theme';
 import { ICONS } from '../ui/icons';
@@ -15,30 +16,30 @@ export function MtgTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
+        headerRight: () => <AccountMenu />,
         tabBarActiveTintColor: c.primary,
         tabBarInactiveTintColor: c.textMuted,
       }}
     >
       <Tab.Screen
-        name="SearchTab"
-        component={MtgStack}
+        name="Search"
+        component={SearchScreen}
         options={{
           title: 'Cards',
           tabBarIcon: ({ color, size }) => <MaterialIcons name={ICONS.search} size={size} color={color} />,
         }}
       />
       <Tab.Screen
-        name="ScanTab"
-        component={ScanStack}
+        name="Scan"
+        component={ScanScreen}
         options={{
           title: 'Scan',
           tabBarIcon: ({ color, size }) => <MaterialIcons name={ICONS.scan} size={size} color={color} />,
         }}
       />
       <Tab.Screen
-        name="CollectionsTab"
-        component={CollectionsStack}
+        name="Collections"
+        component={CollectionsListScreen}
         options={{
           title: 'Collections',
           tabBarIcon: ({ color, size }) => <MaterialIcons name={ICONS.folder} size={size} color={color} />,

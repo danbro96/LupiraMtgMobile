@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { List, Switch, Text } from 'react-native-paper';
 import Slider from '@react-native-community/slider';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -47,7 +46,7 @@ export function ScanSettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <List.Subheader>Auto-capture</List.Subheader>
         <List.Item
@@ -125,7 +124,7 @@ export function ScanSettingsScreen() {
           <Button title="Reset to defaults" variant="destructive" onPress={() => void onReset()} />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

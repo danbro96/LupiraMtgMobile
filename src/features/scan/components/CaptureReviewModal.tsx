@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from 'react-native-paper';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import type { CardCandidateDto } from '../../../api/generated/models';
@@ -57,6 +58,7 @@ function Body({
   onDiscard,
   onClose,
 }: Omit<Props, 'record'> & { state: Recognised }) {
+  const insets = useSafeAreaInsets();
   const { response, added } = state;
   const title = added ? 'Change match' : response.candidates.length === 0 ? 'No match found' : 'Which card is this?';
   const subtitle = remaining > 0 ? `${remaining} more to review` : showScores ? `Confidence: ${response.confidence}` : null;
@@ -93,7 +95,7 @@ function Body({
         )}
       </ScrollView>
 
-      <View style={styles.actions}>
+      <View style={[styles.actions, { paddingBottom: 24 + insets.bottom }]}>
         <Pressable onPress={onDiscard} style={[styles.action, styles.discard]} disabled={pending}>
           <MaterialIcons name={ICONS.delete} size={16} color={d.danger} />
           <Text style={styles.discardText}>{added ? 'Remove' : 'Discard'}</Text>

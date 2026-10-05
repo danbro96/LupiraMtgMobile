@@ -12,13 +12,14 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { Camera, useCameraDevices, useCameraPermission } from 'react-native-vision-camera';
 import { useQueryClient } from '@tanstack/react-query';
-import { RouteProp, useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { CompositeNavigationProp, RouteProp, useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { File } from 'expo-file-system';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ApiError } from '@danbro96/lupira-http/apiError';
 import { scanCard } from '../../api/scan';
 import type { CardCandidateDto, ScanResponse, SelectionResponse } from '../../api/generated/models';
-import { ScanStackParamList } from '../../navigation/types';
+import { MtgTabParamList, RootStackParamList } from '../../navigation/types';
 import { useCurrentSelection, useCurrentSelectionQuery } from './useCurrentSelection';
 import { useScanSettings } from '../../store/scan-settings-store';
 import {
@@ -60,8 +61,8 @@ import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { hapticImpact, hapticSuccess } from '@danbro96/lupira-expo-feedback/haptics';
 
-type Nav = NativeStackNavigationProp<ScanStackParamList, 'Scan'>;
-type Route = RouteProp<ScanStackParamList, 'Scan'>;
+type Nav = CompositeNavigationProp<BottomTabNavigationProp<MtgTabParamList, 'Scan'>, NativeStackNavigationProp<RootStackParamList>>;
+type Route = RouteProp<MtgTabParamList, 'Scan'>;
 
 export function ScanScreen() {
   const navigation = useNavigation<Nav>();

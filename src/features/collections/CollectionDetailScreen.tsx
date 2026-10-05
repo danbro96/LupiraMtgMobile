@@ -2,9 +2,8 @@ import { memo, useLayoutEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
-import { ActivityIndicator, Button as PaperButton, Dialog, Portal, Text } from 'react-native-paper';
+import { ActivityIndicator, Dialog, Portal, Text } from 'react-native-paper';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -17,16 +16,17 @@ import {
 import type {
   CardInstanceDto,
 } from '../../api/generated/models';
-import { CollectionsStackParamList } from '../../navigation/types';
+import { RootStackParamList } from '../../navigation/types';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
+import { HeaderActions } from '@danbro96/lupira-expo-paper/components/HeaderActions';
 import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
 import { HIT_SLOP, cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 
-type Nav = NativeStackNavigationProp<CollectionsStackParamList, 'CollectionDetail'>;
-type Route = RouteProp<CollectionsStackParamList, 'CollectionDetail'>;
+type Nav = NativeStackNavigationProp<RootStackParamList, 'CollectionDetail'>;
+type Route = RouteProp<RootStackParamList, 'CollectionDetail'>;
 
 export function CollectionDetailScreen() {
   const navigation = useNavigation<Nav>();
@@ -65,27 +65,28 @@ export function CollectionDetailScreen() {
     navigation.setOptions({
       title: detail.data?.name ?? 'Collection',
       headerRight: () => (
-        <View style={styles.headerActions}>
-          <Button variant="text" title="Rename" onPress={() => setRenameOpen(true)} />
-          <PaperButton
-            mode="text"
-            textColor={c.danger}
-            onPress={async () => {
-              const ok = await confirm({
-                title: 'Delete collection?',
-                message: 'Cards in this collection will be unreachable. Continue?',
-                confirmLabel: 'Delete',
-                destructive: true,
-              });
-              if (ok) remove.mutate();
-            }}
-          >
-            Delete
-          </PaperButton>
-        </View>
+        <HeaderActions
+          actions={[]}
+          overflow={[
+            { label: 'Rename', onPress: () => setRenameOpen(true) },
+            {
+              label: 'Delete',
+              destructive: true,
+              onPress: async () => {
+                const ok = await confirm({
+                  title: 'Delete collection?',
+                  message: 'Cards in this collection will be unreachable. Continue?',
+                  confirmLabel: 'Delete',
+                  destructive: true,
+                });
+                if (ok) remove.mutate();
+              },
+            },
+          ]}
+        />
       ),
     });
-  }, [navigation, detail.data?.name, remove, confirm, styles, c]);
+  }, [navigation, detail.data?.name, remove, confirm]);
 
   const onRemove = async (card: CardInstanceDto) => {
     const ok = await confirm({
@@ -102,7 +103,7 @@ export function CollectionDetailScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
       {/* Collections are unbounded (one GET returns every card), so rows are recycled. */}
       <FlashList
         data={detail.data?.cards ?? []}
@@ -132,7 +133,7 @@ export function CollectionDetailScreen() {
           setRenameOpen(false);
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -268,5 +269,4 @@ const makeStyles = (c: Palette) =>
     },
     emptyText: { color: c.textSubtle, textAlign: 'center', padding: spacing.xl },
     center: { padding: spacing.xl, alignItems: 'center' },
-    headerActions: { flexDirection: 'row', alignItems: 'center' },
   });

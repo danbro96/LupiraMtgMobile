@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button as PaperButton, Text } from 'react-native-paper';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,14 +18,14 @@ import {
   type EntryAttributes,
   type SelectionGroup,
 } from './selectionGroups';
-import { ScanStackParamList } from '../../navigation/types';
+import { RootStackParamList } from '../../navigation/types';
 import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
 import { HIT_SLOP, cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
 import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { hapticSelection } from '@danbro96/lupira-expo-feedback/haptics';
 
-type Nav = NativeStackNavigationProp<ScanStackParamList, 'Selection'>;
+type Nav = NativeStackNavigationProp<RootStackParamList, 'Selection'>;
 type Styles = ReturnType<typeof makeStyles>;
 
 /** Scryfall `normal` images are 488×680. */
@@ -63,7 +62,7 @@ export function SelectionScreen() {
   const selection = useCurrentSelectionQuery(currentSelectionId);
   const collections = useQuery({ queryKey: ['collections'], queryFn: () => listCollections() });
   const defaultCollection = collections.data?.find(col => col.id === lastCollectionId) ?? null;
-  const commit = useCommitSelection(currentSelectionId, () => navigation.popTo('Scan'));
+  const commit = useCommitSelection(currentSelectionId, () => navigation.popTo('Tabs', { screen: 'Scan' }));
 
   const entries = useMemo(() => selection.data?.cards ?? [], [selection.data]);
   const groups = useMemo(() => groupSelectionEntries(entries), [entries]);
@@ -110,16 +109,16 @@ export function SelectionScreen() {
 
   if (!currentSelectionId) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <View style={styles.container}>
         <Empty styles={styles} palette={c} />
-      </SafeAreaView>
+      </View>
     );
   }
 
   const isEmpty = entries.length === 0;
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
       {selection.isLoading ? <ActivityIndicator style={styles.center} /> : null}
 
       {selection.isError ? (
@@ -204,7 +203,7 @@ export function SelectionScreen() {
           </View>
         </View>
       ) : null}
-    </SafeAreaView>
+    </View>
   );
 }
 

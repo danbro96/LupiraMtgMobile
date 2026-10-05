@@ -7,8 +7,9 @@ import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
 import { listCards } from '../../api/generated/cards/cards';
 import type { CardDto } from '../../api/generated/models';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useNavigation } from '@react-navigation/native';
-import { MtgStackParamList } from '../../navigation/types';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { CompositeNavigationProp, useNavigation } from '@react-navigation/native';
+import { MtgTabParamList, RootStackParamList } from '../../navigation/types';
 import { useSearchPrefs } from '../../store/search-prefs-store';
 import { ActionMenu } from '@danbro96/lupira-expo-paper/components/ActionMenu';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
@@ -29,7 +30,7 @@ import {
   type SortOption,
 } from './searchFilters';
 
-type Nav = NativeStackNavigationProp<MtgStackParamList, 'Search'>;
+type Nav = CompositeNavigationProp<BottomTabNavigationProp<MtgTabParamList, 'Search'>, NativeStackNavigationProp<RootStackParamList>>;
 type Styles = ReturnType<typeof makeStyles>;
 
 const PAGE_SIZE = 50;

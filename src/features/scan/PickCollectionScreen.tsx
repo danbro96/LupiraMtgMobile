@@ -2,14 +2,13 @@ import React, { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button as PaperButton, Text, TextInput } from 'react-native-paper';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { listCollections, createCollection } from '../../api/generated/collections/collections';
 import type { CollectionDto } from '../../api/generated/models';
 import { useSelection } from '../../store/selection-store';
-import { ScanStackParamList } from '../../navigation/types';
+import { RootStackParamList } from '../../navigation/types';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { cardSurface, spacing, useColors, type Palette } from '../../ui/theme';
@@ -20,8 +19,8 @@ import { useCurrentSelectionQuery } from './useCurrentSelection';
 import { useCommitSelection } from './useCommitSelection';
 import { describeSummary, summariseSelection } from './selectionGroups';
 
-type Nav = NativeStackNavigationProp<ScanStackParamList, 'PickCollection'>;
-type Route = RouteProp<ScanStackParamList, 'PickCollection'>;
+type Nav = NativeStackNavigationProp<RootStackParamList, 'PickCollection'>;
+type Route = RouteProp<RootStackParamList, 'PickCollection'>;
 type Styles = ReturnType<typeof makeStyles>;
 
 export function PickCollectionScreen() {
@@ -50,7 +49,7 @@ export function PickCollectionScreen() {
     onError: e => toastError(`Create failed: ${(e as Error).message}`),
   });
 
-  const commit = useCommitSelection(params.selectionId, () => navigation.popTo('Scan'));
+  const commit = useCommitSelection(params.selectionId, () => navigation.popTo('Tabs', { screen: 'Scan' }));
 
   const onCreate = () => {
     const name = newName.trim();
@@ -58,7 +57,7 @@ export function PickCollectionScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
       <View style={styles.createBlock}>
         <View style={styles.createRow}>
           <TextField
@@ -111,7 +110,7 @@ export function PickCollectionScreen() {
           {target ? `Add ${describeSummary(summary)} to ${target.name}` : 'Select a collection'}
         </PaperButton>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

@@ -3,7 +3,8 @@ import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { CompositeNavigationProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   listCollections,
@@ -12,14 +13,14 @@ import {
 import type {
   CollectionDto,
 } from '../../api/generated/models';
-import { CollectionsStackParamList } from '../../navigation/types';
+import { MtgTabParamList, RootStackParamList } from '../../navigation/types';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { cardSurface, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 
-type Nav = NativeStackNavigationProp<CollectionsStackParamList, 'Collections'>;
+type Nav = CompositeNavigationProp<BottomTabNavigationProp<MtgTabParamList, 'Collections'>, NativeStackNavigationProp<RootStackParamList>>;
 
 export function CollectionsListScreen() {
   const navigation = useNavigation<Nav>();
