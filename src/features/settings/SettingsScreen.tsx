@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { List, Text } from 'react-native-paper';
+import { List, Switch, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../store/auth-store';
+import { usePrefs } from '../../store/prefs-store';
 import { APP_VERSION } from '../../config';
 import { UPDATE_LABEL } from '@danbro96/lupira-expo-diagnostics/buildInfo';
 import type { RootStackParamList } from '../../navigation/types';
@@ -16,7 +18,12 @@ export function SettingsScreen() {
   const navigation = useNavigation<Nav>();
   const user = useAuth(s => s.user);
   const mtgApiUrl = useAuth(s => s.mtgApiUrl);
+  const prefs = usePrefs();
   const c = useColors();
+
+  useEffect(() => {
+    if (!prefs.loaded) void prefs.load();
+  }, [prefs]);
 
   return (
     <ScrollView>
@@ -33,16 +40,27 @@ export function SettingsScreen() {
 
       <List.Subheader>Developer</List.Subheader>
       <List.Item
-        title="Scan debug log"
-        description="Pipeline trace (camera → crop → upload → match) and auto-capture decisions."
-        descriptionNumberOfLines={3}
-        onPress={() => navigation.navigate('ScanDebugLog')}
+        title="Enable debug"
+        description="Developer tools and the scan debug log"
+        right={() => (
+          <Switch
+            value={prefs.debugEnabled}
+            onValueChange={v => void usePrefs.getState().setDebugEnabled(v)}
+            accessibilityLabel="Enable debug"
+          />
+        )}
       />
-      <List.Item
-        title="API"
-        description={mtgApiUrl}
-        descriptionStyle={styles.mono}
-      />
+      {prefs.debugEnabled && (
+        <>
+          <List.Item
+            title="Scan debug log"
+            description="Pipeline trace (camera → crop → upload → match) and auto-capture decisions."
+            descriptionNumberOfLines={3}
+            onPress={() => navigation.navigate('ScanDebugLog')}
+          />
+          <List.Item title="API" description={mtgApiUrl} descriptionStyle={styles.mono} />
+        </>
+      )}
 
       <List.Subheader>About</List.Subheader>
       <VersionLine app="Lupira MTG" version={APP_VERSION} updateLabel={UPDATE_LABEL} />
