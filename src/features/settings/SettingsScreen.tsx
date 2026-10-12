@@ -17,6 +17,9 @@ export function SettingsScreen() {
   const user = useAuth(s => s.user);
   const mtgApiUrl = useAuth(s => s.mtgApiUrl);
   const prefs = usePrefs();
+  const subParts: string[] = [];
+  if (user?.displayName && user.sub) subParts.push(user.sub);
+  if (user?.isAdmin) subParts.push('Admin');
 
   useEffect(() => {
     if (!prefs.loaded) void prefs.load();
@@ -26,7 +29,7 @@ export function SettingsScreen() {
     <ScrollView>
       <IdentityHeader
         name={user?.displayName ?? user?.sub ?? 'Not signed in'}
-        sub={[user?.displayName && user.sub, user?.isAdmin && 'Admin'].filter(Boolean).join(' · ') || undefined}
+        sub={subParts.length > 0 ? subParts.join(' · ') : undefined}
       />
 
       <List.Subheader>Account</List.Subheader>
