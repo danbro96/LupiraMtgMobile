@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { List, Switch, Text } from 'react-native-paper';
+import { List, Switch } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../store/auth-store';
@@ -9,7 +9,6 @@ import type { RootStackParamList } from '../../navigation/types';
 import { IdentityHeader } from '@danbro96/lupira-expo-paper/components/IdentityHeader';
 import { SignOutButton } from '@danbro96/lupira-expo-paper/components/SignOutButton';
 import { VersionLine } from '@danbro96/lupira-expo-diagnostics/VersionLine';
-import { spacing, useColors } from '../../ui/theme';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
@@ -18,7 +17,6 @@ export function SettingsScreen() {
   const user = useAuth(s => s.user);
   const mtgApiUrl = useAuth(s => s.mtgApiUrl);
   const prefs = usePrefs();
-  const c = useColors();
 
   useEffect(() => {
     if (!prefs.loaded) void prefs.load();
@@ -26,14 +24,16 @@ export function SettingsScreen() {
 
   return (
     <ScrollView>
-      <IdentityHeader name={user?.displayName ?? user?.sub ?? 'Not signed in'} sub={user?.displayName ? user.sub : undefined} />
+      <IdentityHeader
+        name={user?.displayName ?? user?.sub ?? 'Not signed in'}
+        sub={[user?.displayName && user.sub, user?.isAdmin && 'Admin'].filter(Boolean).join(' · ') || undefined}
+      />
 
       <List.Subheader>Account</List.Subheader>
       <SignOutButton
         message="You will need to sign in with Authentik again to get back in."
         onSignOut={() => void useAuth.getState().clearSession()}
       />
-      {user?.isAdmin ? <Text variant="labelMedium" style={[styles.role, { color: c.primary }]}>Admin</Text> : null}
 
       <List.Subheader>Scanning</List.Subheader>
       <List.Item
@@ -74,6 +74,5 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  role: { textAlign: 'center', marginBottom: spacing.sm },
   mono: { fontFamily: 'monospace' },
 });
