@@ -47,7 +47,7 @@ jobs:
         env:
           BRANCH: ${{ inputs.branch }}
           MESSAGE: ${{ inputs.message }}
-        run: eas update --skip-bundler --platform android --branch "$BRANCH" --message "$MESSAGE" --non-interactive
+        run: eas update --skip-bundler --platform android --branch "$BRANCH" --environment "$BRANCH" --message "$MESSAGE" --non-interactive
       - name: Upload source maps to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
