@@ -21,8 +21,12 @@ import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { HeaderActions } from '@danbro96/lupira-expo-paper/components/HeaderActions';
 import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
+import { Screen } from '@danbro96/lupira-expo-paper/components/Screen';
+import { StatusBanner } from '@danbro96/lupira-expo-paper/components/StatusBanner';
+import { offlineBannerState } from '@danbro96/lupira-expo-paper/status';
 import { HIT_SLOP, cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
+import { useOnline } from '../../query/online';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'CollectionDetail'>;
@@ -35,6 +39,7 @@ export function CollectionDetailScreen() {
   const confirm = useConfirm();
   const [renameOpen, setRenameOpen] = useState(false);
   const c = useColors();
+  const online = useOnline();
   const styles = makeStyles(c);
 
   const detail = useQuery({
@@ -103,7 +108,7 @@ export function CollectionDetailScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <Screen banner={<StatusBanner state={offlineBannerState(online)} />}>
       {/* Collections are unbounded (one GET returns every card), so rows are recycled. */}
       <FlashList
         data={detail.data?.cards ?? []}
@@ -133,7 +138,7 @@ export function CollectionDetailScreen() {
           setRenameOpen(false);
         }}
       />
-    </View>
+    </Screen>
   );
 }
 
@@ -241,7 +246,6 @@ async function submitRename(
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    container: { flex: 1, backgroundColor: c.bg },
     list: { padding: spacing.lg },
     row: {
       ...cardSurface(c),

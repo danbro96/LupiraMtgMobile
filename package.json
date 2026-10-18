@@ -24,6 +24,7 @@
     "@danbro96/lupira-http": "0.1.0",
     "@danbro96/lupira-tokens-core": "0.3.0",
     "@expo/vector-icons": "15.1.1",
+    "@react-native-community/netinfo": "12.0.1",
     "@react-native-community/slider": "5.2.0",
     "@react-navigation/bottom-tabs": "7.20.0",
     "@react-navigation/native": "7.5.0",

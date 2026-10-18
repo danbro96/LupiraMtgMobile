@@ -16,8 +16,12 @@ import type {
 import { MtgTabParamList, RootStackParamList } from '../../navigation/types';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
+import { Screen } from '@danbro96/lupira-expo-paper/components/Screen';
+import { StatusBanner } from '@danbro96/lupira-expo-paper/components/StatusBanner';
+import { offlineBannerState } from '@danbro96/lupira-expo-paper/status';
 import { cardSurface, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
+import { useOnline } from '../../query/online';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 
 type Nav = CompositeNavigationProp<BottomTabNavigationProp<MtgTabParamList, 'Collections'>, NativeStackNavigationProp<RootStackParamList>>;
@@ -27,6 +31,7 @@ export function CollectionsListScreen() {
   const queryClient = useQueryClient();
   const [newName, setNewName] = useState('');
   const c = useColors();
+  const online = useOnline();
   const styles = makeStyles(c);
 
   const collections = useQuery({
@@ -44,7 +49,7 @@ export function CollectionsListScreen() {
   });
 
   return (
-    <View style={styles.container}>
+    <Screen banner={<StatusBanner state={offlineBannerState(online)} />}>
       <View style={styles.createRow}>
         <TextField
           style={styles.grow}
@@ -88,7 +93,7 @@ export function CollectionsListScreen() {
         refreshing={collections.isFetching && !collections.isLoading}
         onRefresh={() => collections.refetch()}
       />
-    </View>
+    </Screen>
   );
 }
 
@@ -116,7 +121,6 @@ function Row({
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    container: { flex: 1, backgroundColor: c.bg },
     createRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.lg },
     grow: { flex: 1 },
     createButton: { justifyContent: 'center' },

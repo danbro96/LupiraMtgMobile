@@ -1,4 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
+import { wireOnlineManager } from './online';
+
+wireOnlineManager();
 
 export const queryClient = new QueryClient({
   defaultOptions: {

@@ -15,8 +15,12 @@ import { ActionMenu } from '@danbro96/lupira-expo-paper/components/ActionMenu';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { IconButton } from '@danbro96/lupira-expo-paper/components/IconButton';
 import { ScreenToolbar } from '@danbro96/lupira-expo-paper/components/ScreenToolbar';
+import { Screen } from '@danbro96/lupira-expo-paper/components/Screen';
+import { StatusBanner } from '@danbro96/lupira-expo-paper/components/StatusBanner';
+import { offlineBannerState } from '@danbro96/lupira-expo-paper/status';
 import { cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
+import { useOnline } from '../../query/online';
 import { extraIdentity, ManaCost } from '../../ui/symbols';
 import { ColorPips } from './ColorPips';
 import { SearchFiltersSheet } from './SearchFiltersSheet';
@@ -46,6 +50,7 @@ const CARD_ASPECT = 488 / 680;
 export function SearchScreen() {
   const navigation = useNavigation<Nav>();
   const c = useColors();
+  const online = useOnline();
   const styles = makeStyles(c);
   const prefs = useSearchPrefs();
   const [query, setQuery] = useState('');
@@ -101,7 +106,7 @@ export function SearchScreen() {
       : `${total.toLocaleString()} card${total === 1 ? '' : 's'} · ${currentSort.label}`;
 
   return (
-    <View style={styles.container}>
+    <Screen banner={<StatusBanner state={offlineBannerState(online)} />}>
       <ScreenToolbar>
         <Searchbar
           value={query}
@@ -186,7 +191,7 @@ export function SearchScreen() {
           onPress: () => setSortOption(o),
         }))}
       />
-    </View>
+    </Screen>
   );
 }
 
@@ -267,7 +272,6 @@ const chipRowStyles = StyleSheet.create({
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    container: { flex: 1, backgroundColor: c.bg },
     search: { flex: 1, height: 44 },
     searchInput: { minHeight: 0 },
     badge: { position: 'absolute', top: 0, right: 0 },
