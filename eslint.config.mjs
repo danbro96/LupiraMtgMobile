@@ -82,6 +82,7 @@ export default [
           { allow: [platform('@danbro96/lupira-tokens-*')] },
           ...fromEach(['api', 'feature', 'navigation'], [platform('@danbro96/lupira-http')]),
           ...fromEach(['auth', 'store', 'feature'], [platform('@danbro96/lupira-expo-oidc')]),
+          ...fromEach(['query', 'feature'], [platform('@danbro96/lupira-expo-query')]),
           ...fromEach(['ui', 'feature', 'navigation'], [
             platform(['@danbro96/lupira-expo-paper', '@danbro96/lupira-expo-feedback', '@danbro96/lupira-expo-diagnostics']),
           ]),

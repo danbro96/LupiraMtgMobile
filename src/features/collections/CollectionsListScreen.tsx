@@ -21,7 +21,7 @@ import { StatusBanner } from '@danbro96/lupira-expo-paper/components/StatusBanne
 import { offlineBannerState } from '@danbro96/lupira-expo-paper/status';
 import { cardSurface, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
-import { useOnline } from '../../query/online';
+import { useOnline } from '@danbro96/lupira-expo-query/online';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 
 type Nav = CompositeNavigationProp<BottomTabNavigationProp<MtgTabParamList, 'Collections'>, NativeStackNavigationProp<RootStackParamList>>;

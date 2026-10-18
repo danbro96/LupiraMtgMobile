@@ -20,7 +20,7 @@ import { StatusBanner } from '@danbro96/lupira-expo-paper/components/StatusBanne
 import { offlineBannerState } from '@danbro96/lupira-expo-paper/status';
 import { cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
-import { useOnline } from '../../query/online';
+import { useOnline } from '@danbro96/lupira-expo-query/online';
 import { extraIdentity, ManaCost } from '../../ui/symbols';
 import { ColorPips } from './ColorPips';
 import { SearchFiltersSheet } from './SearchFiltersSheet';

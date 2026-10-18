@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
-import { wireOnlineManager } from './online';
+import { connectOnlineManager } from '@danbro96/lupira-expo-query/online';
 
-wireOnlineManager();
+connectOnlineManager();
 
 export const queryClient = new QueryClient({
   defaultOptions: {

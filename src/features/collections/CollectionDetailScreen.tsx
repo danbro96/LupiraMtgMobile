@@ -26,7 +26,7 @@ import { StatusBanner } from '@danbro96/lupira-expo-paper/components/StatusBanne
 import { offlineBannerState } from '@danbro96/lupira-expo-paper/status';
 import { HIT_SLOP, cardSurface, radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
-import { useOnline } from '../../query/online';
+import { useOnline } from '@danbro96/lupira-expo-query/online';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'CollectionDetail'>;
