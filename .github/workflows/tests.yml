@@ -1,0 +1,25 @@
+name: tests
+
+on:
+  workflow_call:
+
+env:
+  PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm i -g npm@12
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: Export bundle
+        run: npx expo export --platform android --output-dir ${{ runner.temp }}/expo-export
