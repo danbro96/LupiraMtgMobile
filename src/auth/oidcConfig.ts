@@ -2,7 +2,6 @@
 // The Authority/issuer + client id must match the Authentik `lupira-mtg` application/provider
 // (see DevOps/Identity/authentik/blueprints/40-apps-lupira-mtg.yaml).
 
-// No trailing slash — expo-auth-session appends `/.well-known/...` verbatim and Authentik 404s the `//`.
 export const OIDC_ISSUER = 'https://auth.lupira.com/application/o/lupira-mtg';
 
 /** Public client id — also the token `aud` the API validates. */

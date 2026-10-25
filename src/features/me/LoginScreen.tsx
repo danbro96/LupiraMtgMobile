@@ -1,19 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useAuth } from '../../store/auth-store';
-import {
-  OIDC_CLIENT_ID,
-  OIDC_ISSUER,
-  OIDC_REDIRECT_PATH,
-  OIDC_SCHEME,
-  OIDC_SCOPES,
-} from '../../auth/oidcConfig';
-import { decodeJwt } from '@danbro96/lupira-expo-oidc/oidc';
+import { OIDC_REDIRECT_PATH, OIDC_SCHEME, OIDC_SCOPES } from '../../auth/oidcConfig';
+import type { TokenSet } from '@danbro96/lupira-expo-oidc/oidc';
+import { useOidcLogin } from '@danbro96/lupira-expo-oidc/useOidcLogin';
 import { oidc } from '../../auth/oidc';
 import { logAuth } from '../../auth/authDebug';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
@@ -21,60 +15,30 @@ import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
+import { sessionFromTokens } from './sessionFromTokens';
 
 // Lets the auth redirect dismiss the in-app browser and resolve the pending session.
 WebBrowser.maybeCompleteAuthSession();
 
-const ADMIN_GROUPS = ['mtg-admins', 'platform-admins'];
-
-function isAdminFromClaims(claims: Record<string, unknown>): boolean {
-  const groups = claims.groups;
-  return Array.isArray(groups) && groups.some(g => ADMIN_GROUPS.includes(String(g)));
-}
-
-async function completeSignIn(
-  grant: Parameters<typeof oidc.exchangeAuthCode>[0],
-  setBusy: (busy: boolean) => void,
-  setError: (error: string | null) => void,
-) {
-  setBusy(true);
-  setError(null);
-  try {
-    const token = await oidc.exchangeAuthCode(grant);
-    const claims = decodeJwt(token.idToken ?? token.accessToken);
-    const sub =
-      (claims.email as string) ?? (claims.preferred_username as string) ?? (claims.sub as string) ?? '';
-    const displayName = (claims.name as string) ?? (claims.given_name as string) ?? undefined;
-    await useAuth.getState().setSession(
-      {
-        accessToken: token.accessToken,
-        refreshToken: token.refreshToken,
-        expiresAt: Date.now() + (token.expiresIn ?? 3600) * 1000,
-      },
-      { sub, displayName, isAdmin: isAdminFromClaims(claims) },
-    );
-    logAuth('setSession', 'authed=true');
-  } catch (e) {
-    logAuth('exchange:error', e instanceof Error ? e.message : String(e));
-    setError(e instanceof Error ? e.message : String(e));
-  } finally {
-    setBusy(false);
-  }
+async function storeSession(tokens: TokenSet) {
+  const { session, user } = sessionFromTokens(tokens, Date.now());
+  await useAuth.getState().setSession(session, user);
+  logAuth('setSession', 'authed=true');
 }
 
 export function LoginScreen() {
   const mtgApiUrl = useAuth(s => s.mtgApiUrl);
   const setApiUrl = useAuth(s => s.setApiUrl);
 
-  const discovery = AuthSession.useAutoDiscovery(OIDC_ISSUER);
-  const redirectUri = AuthSession.makeRedirectUri({ scheme: OIDC_SCHEME, path: OIDC_REDIRECT_PATH });
-  const [request, response, promptAsync] = AuthSession.useAuthRequest(
-    { clientId: OIDC_CLIENT_ID, scopes: OIDC_SCOPES, redirectUri, usePKCE: true },
-    discovery,
-  );
+  const { status, error, retry, signIn, redirectUri } = useOidcLogin({
+    oidc,
+    scopes: OIDC_SCOPES,
+    scheme: OIDC_SCHEME,
+    path: OIDC_REDIRECT_PATH,
+    onTokens: storeSession,
+    log: logAuth,
+  });
 
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [apiInput, setApiInput] = useState(mtgApiUrl);
   const [savingApi, setSavingApi] = useState(false);
@@ -82,43 +46,9 @@ export function LoginScreen() {
   const c = useColors();
   const styles = makeStyles(c);
 
-  async function handleSignIn() {
-    setError(null);
-    logAuth('prompt:open');
-    try {
-      // createTask:false (Android) keeps the auth tab in the app's task so the redirect returns
-      // into it — without this it lands in a separate task and resolves 'dismiss' (expo/expo#23781).
-      const result = await promptAsync({ createTask: false });
-      logAuth('prompt:result', result.type);
-    } catch (e) {
-      logAuth('prompt:throw', String(e));
-    }
-  }
-
-  const [handledResponse, setHandledResponse] = useState(response);
-  if (response !== handledResponse) {
-    setHandledResponse(response);
-    if (response?.type === 'error') setError(response.error?.description ?? 'Sign-in failed.');
-    else if (response && response.type !== 'success') setError(`Sign-in did not complete (${response.type}).`);
-  }
-
-  useEffect(() => {
-    if (!response) return;
-    logAuth('response', response.type);
-    if (response.type !== 'success') return;
-    if (!discovery?.tokenEndpoint || !request) {
-      logAuth('response:guard', `discovery=${!!discovery} request=${!!request}`);
-      return;
-    }
-    const tokenEndpoint = discovery.tokenEndpoint;
-    const code = response.params.code;
-
-    void completeSignIn(
-      { tokenEndpoint, code, redirectUri, codeVerifier: request.codeVerifier },
-      setBusy,
-      setError,
-    );
-  }, [response, discovery, request, redirectUri]);
+  const onSignIn = () => {
+    signIn().catch((e: unknown) => logAuth('signIn:error', e instanceof Error ? e.message : String(e)));
+  };
 
   const onSaveApi = async () => {
     const url = apiInput.trim();
@@ -141,15 +71,16 @@ export function LoginScreen() {
 
         <Button
           title="Sign in with Authentik"
-          onPress={() => void handleSignIn()}
-          disabled={!request || apiDirty}
-          loading={busy}
+          onPress={onSignIn}
+          disabled={status !== 'ready' || apiDirty}
+          loading={status === 'busy'}
           style={styles.button}
           contentStyle={styles.buttonContent}
         />
 
         {apiDirty ? <Text style={styles.hint}>Save the API URL first, then sign in.</Text> : null}
         {error ? <Text style={styles.error}>{error}</Text> : null}
+        {status === 'unavailable' ? <Button title="Retry" variant="text" onPress={retry} /> : null}
 
         <Button
           title={showAdvanced ? 'Hide advanced' : 'Advanced'}
