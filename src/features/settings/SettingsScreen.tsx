@@ -15,11 +15,12 @@ type Nav = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 export function SettingsScreen() {
   const navigation = useNavigation<Nav>();
   const user = useAuth(s => s.user);
-  const mtgApiUrl = useAuth(s => s.mtgApiUrl);
+  const apiUrl = useAuth(s => s.apiUrl);
+  const isAdmin = useAuth(s => s.isAdmin);
   const prefs = usePrefs();
   const subParts: string[] = [];
-  if (user?.displayName && user.sub) subParts.push(user.sub);
-  if (user?.isAdmin) subParts.push('Admin');
+  if (user?.name && user.sub) subParts.push(user.sub);
+  if (isAdmin) subParts.push('Admin');
 
   useEffect(() => {
     if (!prefs.loaded) void prefs.load();
@@ -28,7 +29,7 @@ export function SettingsScreen() {
   return (
     <ScrollView>
       <IdentityHeader
-        name={user?.displayName ?? user?.sub ?? 'Not signed in'}
+        name={user?.name ?? user?.sub ?? 'Not signed in'}
         sub={subParts.length > 0 ? subParts.join(' · ') : undefined}
       />
 
@@ -66,7 +67,7 @@ export function SettingsScreen() {
             descriptionNumberOfLines={3}
             onPress={() => navigation.navigate('ScanDebugLog')}
           />
-          <List.Item title="API" description={mtgApiUrl} descriptionStyle={styles.mono} />
+          <List.Item title="API" description={apiUrl} descriptionStyle={styles.mono} />
         </>
       )}
 

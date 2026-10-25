@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import { queryClient } from './src/query/queryClient';
 import { RootStack } from './src/navigation/RootStack';
 import { useAutoUpdate } from '@danbro96/lupira-expo-diagnostics/useAutoUpdate';
 import { useAuth } from './src/store/auth-store';
+import { logAuth } from './src/auth/authDebug';
 import { ToastHost } from '@danbro96/lupira-expo-paper/components/ToastHost';
 import { ConfirmDialogHost } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
 import { navDark, navLight, paperDark, paperLight } from './src/ui/theme';
@@ -27,20 +28,17 @@ initSentry(SENTRY_DSN, {
 
 export default Sentry.wrap(function App() {
   useAutoUpdate();
-  const [ready, setReady] = useState(false);
   const scheme = useColorScheme();
 
   useEffect(() => {
-    void (async () => {
-      await useAuth.getState().load();
-      // Renew a still-valid-but-near-expiry token before the first request; a transient failure
-      // keeps the session (the mutator's 401 path is the reactive safety net).
-      await useAuth.getState().refreshIfNeeded();
-      setReady(true);
-    })();
+    useAuth.getState().load().catch((e: unknown) => logAuth('load-error', e instanceof Error ? e.message : String(e)));
+    const stopAutoRefresh = useAuth.getState().startAutoRefresh();
+    const unsubscribe = useAuth.getState().onSignOut(() => queryClient.clear());
+    return () => {
+      stopAutoRefresh();
+      unsubscribe();
+    };
   }, []);
-
-  if (!ready) return null;
 
   return (
     <SafeAreaProvider>

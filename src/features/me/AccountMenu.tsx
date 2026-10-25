@@ -3,5 +3,5 @@ import { useAuth } from '../../store/auth-store';
 
 export function AccountMenu() {
   const user = useAuth(s => s.user);
-  return <AccountButton name={user?.displayName ?? user?.sub ?? 'Account'} />;
+  return <AccountButton name={user?.name ?? user?.sub ?? 'Account'} />;
 }

@@ -5,15 +5,15 @@ import { useAuth } from '../store/auth-store';
  * Custom fetch invoked by every Orval-generated request. Returns the parsed body, matching
  * `includeHttpResponseReturnType: false` in orval.config.ts.
  *
- * Owns the base URL (read live from `useAuth.getState().mtgApiUrl`, so the settings-screen override is always
+ * Owns the base URL (read live from `useAuth.getState().apiUrl`, so the settings-screen override is always
  * honoured), bearer injection, content-type handling, 204 → undefined, and non-2xx → `ApiError`.
  */
 export async function apiFetch<T>(
   url: string,
   init?: RequestInit,
 ): Promise<T> {
-  const { mtgApiUrl, token } = useAuth.getState();
-  if (!mtgApiUrl) {
+  const { apiUrl, token } = useAuth.getState();
+  if (!apiUrl) {
     throw new ApiError(0, 'API base URL is not configured.');
   }
 
@@ -31,7 +31,7 @@ export async function apiFetch<T>(
     headers.set('Content-Type', 'application/json');
   }
 
-  const fullUrl = mtgApiUrl.replace(/\/$/, '') + url;
+  const fullUrl = apiUrl.replace(/\/$/, '') + url;
   let res = await fetch(fullUrl, { ...init, headers });
 
   // Reactive re-auth: a 401 means the token was rejected (expired early / clock skew so the

@@ -15,19 +15,17 @@ import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { radii, spacing, useColors, type Palette } from '../../ui/theme';
 import { ICONS } from '../../ui/icons';
-import { sessionFromTokens } from './sessionFromTokens';
 
 // Lets the auth redirect dismiss the in-app browser and resolve the pending session.
 WebBrowser.maybeCompleteAuthSession();
 
 async function storeSession(tokens: TokenSet) {
-  const { session, user } = sessionFromTokens(tokens, Date.now());
-  await useAuth.getState().setSession(session, user);
+  await useAuth.getState().signIn(tokens);
   logAuth('setSession', 'authed=true');
 }
 
 export function LoginScreen() {
-  const mtgApiUrl = useAuth(s => s.mtgApiUrl);
+  const apiUrl = useAuth(s => s.apiUrl);
   const setApiUrl = useAuth(s => s.setApiUrl);
 
   const { status, error, retry, signIn, redirectUri } = useOidcLogin({
@@ -40,9 +38,9 @@ export function LoginScreen() {
   });
 
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [apiInput, setApiInput] = useState(mtgApiUrl);
+  const [apiInput, setApiInput] = useState(apiUrl);
   const [savingApi, setSavingApi] = useState(false);
-  const apiDirty = apiInput.trim() !== mtgApiUrl;
+  const apiDirty = apiInput.trim() !== apiUrl;
   const c = useColors();
   const styles = makeStyles(c);
 
