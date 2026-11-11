@@ -7,6 +7,6 @@
  */
 
 export type ListPricesParams = {
-from?: string;
-to?: string;
+  from?: string;
+  to?: string;
 };

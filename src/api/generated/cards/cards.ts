@@ -137,6 +137,32 @@ export type ListCardsQueryResult = NonNullable<Awaited<ReturnType<typeof listCar
 export type ListCardsQueryError = ProblemDetails
 
 
+/**
+ * Returns one row per Oracle ID — i.e. functionally distinct cards. Each row carries
+ * oracle-level fields (name, type line, oracle text, color identity, mana cost, CMC)
+ * plus a representative thumbnail picked deterministically (English, latest non-foil
+ * printing with an image).
+ *
+ * **Filters** (all optional, AND'd together):
+ * - `q` — fuzzy match on card name (Postgres `pg_trgm`).
+ * - `set` — keep only cards with a printing in this set code (e.g. `m21`).
+ * - `rarity` — `common|uncommon|rare|mythic|special`.
+ * - `color` — single color identity letter (`W|U|B|R|G`).
+ * - `colors` — comma-separated multi-color identity (AND), e.g. `colors=W,U` keeps
+ *   only cards whose color identity contains every listed letter.
+ * - `type` — fuzzy match on the recomposed type line (e.g. `type=goblin warrior`).
+ * - `cmc` — exact converted mana cost.
+ * - `cmcMin` / `cmcMax` — CMC range bounds (inclusive).
+ * - `power` / `toughness` — exact match (strings, since `*` and `1+1` are valid).
+ *
+ * **Sort**: `sort=name|cmc|releasedAt|rarity|relevance`. Defaults to `relevance` when
+ * `q` is provided, otherwise `name`. `order=asc|desc` (relevance is always best-first).
+ *
+ * **Pagination**: `take` 1–100 (default 25), `skip` for paging.
+ *
+ * Use `GET /cards/{oracleId}/printings` to drill into printings for a specific card.
+ * @summary List or search functionally distinct cards (one entry per Oracle ID).
+ */
 export function useListCards<TData = Awaited<ReturnType<typeof listCards>>, TError = ProblemDetails>(
  params: undefined |  ListCardsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCards>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -147,6 +173,32 @@ export function useListCards<TData = Awaited<ReturnType<typeof listCards>>, TErr
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns one row per Oracle ID — i.e. functionally distinct cards. Each row carries
+ * oracle-level fields (name, type line, oracle text, color identity, mana cost, CMC)
+ * plus a representative thumbnail picked deterministically (English, latest non-foil
+ * printing with an image).
+ *
+ * **Filters** (all optional, AND'd together):
+ * - `q` — fuzzy match on card name (Postgres `pg_trgm`).
+ * - `set` — keep only cards with a printing in this set code (e.g. `m21`).
+ * - `rarity` — `common|uncommon|rare|mythic|special`.
+ * - `color` — single color identity letter (`W|U|B|R|G`).
+ * - `colors` — comma-separated multi-color identity (AND), e.g. `colors=W,U` keeps
+ *   only cards whose color identity contains every listed letter.
+ * - `type` — fuzzy match on the recomposed type line (e.g. `type=goblin warrior`).
+ * - `cmc` — exact converted mana cost.
+ * - `cmcMin` / `cmcMax` — CMC range bounds (inclusive).
+ * - `power` / `toughness` — exact match (strings, since `*` and `1+1` are valid).
+ *
+ * **Sort**: `sort=name|cmc|releasedAt|rarity|relevance`. Defaults to `relevance` when
+ * `q` is provided, otherwise `name`. `order=asc|desc` (relevance is always best-first).
+ *
+ * **Pagination**: `take` 1–100 (default 25), `skip` for paging.
+ *
+ * Use `GET /cards/{oracleId}/printings` to drill into printings for a specific card.
+ * @summary List or search functionally distinct cards (one entry per Oracle ID).
+ */
 export function useListCards<TData = Awaited<ReturnType<typeof listCards>>, TError = ProblemDetails>(
  params?: ListCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCards>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -157,14 +209,62 @@ export function useListCards<TData = Awaited<ReturnType<typeof listCards>>, TErr
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns one row per Oracle ID — i.e. functionally distinct cards. Each row carries
+ * oracle-level fields (name, type line, oracle text, color identity, mana cost, CMC)
+ * plus a representative thumbnail picked deterministically (English, latest non-foil
+ * printing with an image).
+ *
+ * **Filters** (all optional, AND'd together):
+ * - `q` — fuzzy match on card name (Postgres `pg_trgm`).
+ * - `set` — keep only cards with a printing in this set code (e.g. `m21`).
+ * - `rarity` — `common|uncommon|rare|mythic|special`.
+ * - `color` — single color identity letter (`W|U|B|R|G`).
+ * - `colors` — comma-separated multi-color identity (AND), e.g. `colors=W,U` keeps
+ *   only cards whose color identity contains every listed letter.
+ * - `type` — fuzzy match on the recomposed type line (e.g. `type=goblin warrior`).
+ * - `cmc` — exact converted mana cost.
+ * - `cmcMin` / `cmcMax` — CMC range bounds (inclusive).
+ * - `power` / `toughness` — exact match (strings, since `*` and `1+1` are valid).
+ *
+ * **Sort**: `sort=name|cmc|releasedAt|rarity|relevance`. Defaults to `relevance` when
+ * `q` is provided, otherwise `name`. `order=asc|desc` (relevance is always best-first).
+ *
+ * **Pagination**: `take` 1–100 (default 25), `skip` for paging.
+ *
+ * Use `GET /cards/{oracleId}/printings` to drill into printings for a specific card.
+ * @summary List or search functionally distinct cards (one entry per Oracle ID).
+ */
 export function useListCards<TData = Awaited<ReturnType<typeof listCards>>, TError = ProblemDetails>(
  params?: ListCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCards>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Returns one row per Oracle ID — i.e. functionally distinct cards. Each row carries
+ * oracle-level fields (name, type line, oracle text, color identity, mana cost, CMC)
+ * plus a representative thumbnail picked deterministically (English, latest non-foil
+ * printing with an image).
+ *
+ * **Filters** (all optional, AND'd together):
+ * - `q` — fuzzy match on card name (Postgres `pg_trgm`).
+ * - `set` — keep only cards with a printing in this set code (e.g. `m21`).
+ * - `rarity` — `common|uncommon|rare|mythic|special`.
+ * - `color` — single color identity letter (`W|U|B|R|G`).
+ * - `colors` — comma-separated multi-color identity (AND), e.g. `colors=W,U` keeps
+ *   only cards whose color identity contains every listed letter.
+ * - `type` — fuzzy match on the recomposed type line (e.g. `type=goblin warrior`).
+ * - `cmc` — exact converted mana cost.
+ * - `cmcMin` / `cmcMax` — CMC range bounds (inclusive).
+ * - `power` / `toughness` — exact match (strings, since `*` and `1+1` are valid).
+ *
+ * **Sort**: `sort=name|cmc|releasedAt|rarity|relevance`. Defaults to `relevance` when
+ * `q` is provided, otherwise `name`. `order=asc|desc` (relevance is always best-first).
+ *
+ * **Pagination**: `take` 1–100 (default 25), `skip` for paging.
+ *
+ * Use `GET /cards/{oracleId}/printings` to drill into printings for a specific card.
  * @summary List or search functionally distinct cards (one entry per Oracle ID).
  */
-
 export function useListCards<TData = Awaited<ReturnType<typeof listCards>>, TError = ProblemDetails>(
  params?: ListCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCards>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
@@ -240,6 +340,12 @@ export type GetCardQueryResult = NonNullable<Awaited<ReturnType<typeof getCard>>
 export type GetCardQueryError = ProblemDetails
 
 
+/**
+ * Returns the oracle-level view of a card: name, type line, oracle text, color identity,
+ * and a representative thumbnail. Does **not** return printing-specific data such as set,
+ * collector number, or prices — see `GET /cards/{oracleId}/printings`.
+ * @summary Get a single card (oracle-level) by Oracle ID.
+ */
 export function useGetCard<TData = Awaited<ReturnType<typeof getCard>>, TError = ProblemDetails>(
  oracleId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCard>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -250,6 +356,12 @@ export function useGetCard<TData = Awaited<ReturnType<typeof getCard>>, TError =
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns the oracle-level view of a card: name, type line, oracle text, color identity,
+ * and a representative thumbnail. Does **not** return printing-specific data such as set,
+ * collector number, or prices — see `GET /cards/{oracleId}/printings`.
+ * @summary Get a single card (oracle-level) by Oracle ID.
+ */
 export function useGetCard<TData = Awaited<ReturnType<typeof getCard>>, TError = ProblemDetails>(
  oracleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCard>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -260,14 +372,22 @@ export function useGetCard<TData = Awaited<ReturnType<typeof getCard>>, TError =
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns the oracle-level view of a card: name, type line, oracle text, color identity,
+ * and a representative thumbnail. Does **not** return printing-specific data such as set,
+ * collector number, or prices — see `GET /cards/{oracleId}/printings`.
+ * @summary Get a single card (oracle-level) by Oracle ID.
+ */
 export function useGetCard<TData = Awaited<ReturnType<typeof getCard>>, TError = ProblemDetails>(
  oracleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Returns the oracle-level view of a card: name, type line, oracle text, color identity,
+ * and a representative thumbnail. Does **not** return printing-specific data such as set,
+ * collector number, or prices — see `GET /cards/{oracleId}/printings`.
  * @summary Get a single card (oracle-level) by Oracle ID.
  */
-
 export function useGetCard<TData = Awaited<ReturnType<typeof getCard>>, TError = ProblemDetails>(
  oracleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCard>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
@@ -342,6 +462,11 @@ export type ListPrintingsQueryResult = NonNullable<Awaited<ReturnType<typeof lis
 export type ListPrintingsQueryError = ProblemDetails
 
 
+/**
+ * Returns every printing that shares this Oracle ID, ordered newest-set first.
+ * Bounded list (no pagination) — even the most-reprinted cards have ~100 printings.
+ * @summary List every printing of a card.
+ */
 export function useListPrintings<TData = Awaited<ReturnType<typeof listPrintings>>, TError = ProblemDetails>(
  oracleId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPrintings>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -352,6 +477,11 @@ export function useListPrintings<TData = Awaited<ReturnType<typeof listPrintings
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns every printing that shares this Oracle ID, ordered newest-set first.
+ * Bounded list (no pagination) — even the most-reprinted cards have ~100 printings.
+ * @summary List every printing of a card.
+ */
 export function useListPrintings<TData = Awaited<ReturnType<typeof listPrintings>>, TError = ProblemDetails>(
  oracleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPrintings>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -362,14 +492,20 @@ export function useListPrintings<TData = Awaited<ReturnType<typeof listPrintings
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns every printing that shares this Oracle ID, ordered newest-set first.
+ * Bounded list (no pagination) — even the most-reprinted cards have ~100 printings.
+ * @summary List every printing of a card.
+ */
 export function useListPrintings<TData = Awaited<ReturnType<typeof listPrintings>>, TError = ProblemDetails>(
  oracleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPrintings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Returns every printing that shares this Oracle ID, ordered newest-set first.
+ * Bounded list (no pagination) — even the most-reprinted cards have ~100 printings.
  * @summary List every printing of a card.
  */
-
 export function useListPrintings<TData = Awaited<ReturnType<typeof listPrintings>>, TError = ProblemDetails>(
  oracleId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPrintings>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
@@ -450,6 +586,13 @@ export type GetPrintingQueryResult = NonNullable<Awaited<ReturnType<typeof getPr
 export type GetPrintingQueryError = ProblemDetails
 
 
+/**
+ * Returns a printing's metadata along with presigned URLs for the normal-size image
+ * and the art crop (if present in the local image store). Returns 404 if the printing
+ * is unknown to the local catalog or if `oracleId` does not match the printing's
+ * Oracle ID (re-run sync if it should exist).
+ * @summary Get a single card printing by Scryfall ID.
+ */
 export function useGetPrinting<TData = Awaited<ReturnType<typeof getPrinting>>, TError = ProblemDetails>(
  oracleId: string,
     printingId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPrinting>>, TError, TData>> & Pick<
@@ -461,6 +604,13 @@ export function useGetPrinting<TData = Awaited<ReturnType<typeof getPrinting>>, 
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns a printing's metadata along with presigned URLs for the normal-size image
+ * and the art crop (if present in the local image store). Returns 404 if the printing
+ * is unknown to the local catalog or if `oracleId` does not match the printing's
+ * Oracle ID (re-run sync if it should exist).
+ * @summary Get a single card printing by Scryfall ID.
+ */
 export function useGetPrinting<TData = Awaited<ReturnType<typeof getPrinting>>, TError = ProblemDetails>(
  oracleId: string,
     printingId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPrinting>>, TError, TData>> & Pick<
@@ -472,15 +622,25 @@ export function useGetPrinting<TData = Awaited<ReturnType<typeof getPrinting>>, 
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns a printing's metadata along with presigned URLs for the normal-size image
+ * and the art crop (if present in the local image store). Returns 404 if the printing
+ * is unknown to the local catalog or if `oracleId` does not match the printing's
+ * Oracle ID (re-run sync if it should exist).
+ * @summary Get a single card printing by Scryfall ID.
+ */
 export function useGetPrinting<TData = Awaited<ReturnType<typeof getPrinting>>, TError = ProblemDetails>(
  oracleId: string,
     printingId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPrinting>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Returns a printing's metadata along with presigned URLs for the normal-size image
+ * and the art crop (if present in the local image store). Returns 404 if the printing
+ * is unknown to the local catalog or if `oracleId` does not match the printing's
+ * Oracle ID (re-run sync if it should exist).
  * @summary Get a single card printing by Scryfall ID.
  */
-
 export function useGetPrinting<TData = Awaited<ReturnType<typeof getPrinting>>, TError = ProblemDetails>(
  oracleId: string,
     printingId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPrinting>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
@@ -573,6 +733,13 @@ export type ListPricesQueryResult = NonNullable<Awaited<ReturnType<typeof listPr
 export type ListPricesQueryError = ProblemDetails
 
 
+/**
+ * Returns the daily price history for a printing (store-on-change: a point exists only
+ * for days the price moved), oldest first, clamped to the configured retention window.
+ * Optional `from`/`to` query params (`yyyy-MM-dd`) narrow the range. Returns 404 when no
+ * price points have been recorded for the printing.
+ * @summary Get the EUR price history of a printing.
+ */
 export function useListPrices<TData = Awaited<ReturnType<typeof listPrices>>, TError = ProblemDetails>(
  oracleId: string,
     printingId: string,
@@ -585,6 +752,13 @@ export function useListPrices<TData = Awaited<ReturnType<typeof listPrices>>, TE
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns the daily price history for a printing (store-on-change: a point exists only
+ * for days the price moved), oldest first, clamped to the configured retention window.
+ * Optional `from`/`to` query params (`yyyy-MM-dd`) narrow the range. Returns 404 when no
+ * price points have been recorded for the printing.
+ * @summary Get the EUR price history of a printing.
+ */
 export function useListPrices<TData = Awaited<ReturnType<typeof listPrices>>, TError = ProblemDetails>(
  oracleId: string,
     printingId: string,
@@ -597,6 +771,13 @@ export function useListPrices<TData = Awaited<ReturnType<typeof listPrices>>, TE
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns the daily price history for a printing (store-on-change: a point exists only
+ * for days the price moved), oldest first, clamped to the configured retention window.
+ * Optional `from`/`to` query params (`yyyy-MM-dd`) narrow the range. Returns 404 when no
+ * price points have been recorded for the printing.
+ * @summary Get the EUR price history of a printing.
+ */
 export function useListPrices<TData = Awaited<ReturnType<typeof listPrices>>, TError = ProblemDetails>(
  oracleId: string,
     printingId: string,
@@ -604,9 +785,12 @@ export function useListPrices<TData = Awaited<ReturnType<typeof listPrices>>, TE
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Returns the daily price history for a printing (store-on-change: a point exists only
+ * for days the price moved), oldest first, clamped to the configured retention window.
+ * Optional `from`/`to` query params (`yyyy-MM-dd`) narrow the range. Returns 404 when no
+ * price points have been recorded for the printing.
  * @summary Get the EUR price history of a printing.
  */
-
 export function useListPrices<TData = Awaited<ReturnType<typeof listPrices>>, TError = ProblemDetails>(
  oracleId: string,
     printingId: string,

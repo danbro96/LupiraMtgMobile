@@ -7,9 +7,9 @@
  */
 
 export type ListSetsParams = {
-setType?: string;
-sort?: string;
-order?: string;
-take?: number;
-skip?: number;
+  setType?: string;
+  sort?: string;
+  order?: string;
+  take?: number;
+  skip?: number;
 };

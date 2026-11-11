@@ -120,6 +120,7 @@ export type ListCollectionsQueryResult = NonNullable<Awaited<ReturnType<typeof l
 export type ListCollectionsQueryError = ProblemDetails
 
 
+/** @summary List the caller's collections. */
 export function useListCollections<TData = Awaited<ReturnType<typeof listCollections>>, TError = ProblemDetails>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCollections>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -130,6 +131,7 @@ export function useListCollections<TData = Awaited<ReturnType<typeof listCollect
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary List the caller's collections. */
 export function useListCollections<TData = Awaited<ReturnType<typeof listCollections>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCollections>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -140,14 +142,12 @@ export function useListCollections<TData = Awaited<ReturnType<typeof listCollect
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary List the caller's collections. */
 export function useListCollections<TData = Awaited<ReturnType<typeof listCollections>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCollections>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary List the caller's collections.
- */
-
+/** @summary List the caller's collections. */
 export function useListCollections<TData = Awaited<ReturnType<typeof listCollections>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCollections>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
@@ -239,9 +239,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateCollectionMutationError = ProblemDetails
     export type CreateCollectionMutationVariables = {data: CreateCollectionRequest}
 
-    /**
- * @summary Create a new collection.
- */
+    /** @summary Create a new collection. */
 export const useCreateCollection = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCollection>>, TError,CreateCollectionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -307,6 +305,7 @@ export type GetCollectionQueryResult = NonNullable<Awaited<ReturnType<typeof get
 export type GetCollectionQueryError = ProblemDetails
 
 
+/** @summary Get a collection with its cards. */
 export function useGetCollection<TData = Awaited<ReturnType<typeof getCollection>>, TError = ProblemDetails>(
  collectionId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollection>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -317,6 +316,7 @@ export function useGetCollection<TData = Awaited<ReturnType<typeof getCollection
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Get a collection with its cards. */
 export function useGetCollection<TData = Awaited<ReturnType<typeof getCollection>>, TError = ProblemDetails>(
  collectionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollection>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -327,14 +327,12 @@ export function useGetCollection<TData = Awaited<ReturnType<typeof getCollection
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Get a collection with its cards. */
 export function useGetCollection<TData = Awaited<ReturnType<typeof getCollection>>, TError = ProblemDetails>(
  collectionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollection>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get a collection with its cards.
- */
-
+/** @summary Get a collection with its cards. */
 export function useGetCollection<TData = Awaited<ReturnType<typeof getCollection>>, TError = ProblemDetails>(
  collectionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCollection>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
@@ -427,9 +425,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateCollectionMutationError = ProblemDetails
     export type UpdateCollectionMutationVariables = {collectionId: string;data: RenameCollectionRequest}
 
-    /**
- * @summary Rename a collection.
- */
+    /** @summary Rename a collection. */
 export const useUpdateCollection = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCollection>>, TError,UpdateCollectionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -500,9 +496,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteCollectionMutationError = ProblemDetails
     export type DeleteCollectionMutationVariables = {collectionId: string}
 
-    /**
- * @summary Soft-delete a collection.
- */
+    /** @summary Soft-delete a collection. */
 export const useDeleteCollection = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCollection>>, TError,DeleteCollectionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -581,6 +575,11 @@ export type ListCollectionCardsQueryResult = NonNullable<Awaited<ReturnType<type
 export type ListCollectionCardsQueryError = ProblemDetails
 
 
+/**
+ * Sorted by card name (ascending). `take` 1–200 (default 50). `skip` for paging.
+ * Response includes `total`.
+ * @summary List the cards in a collection.
+ */
 export function useListCollectionCards<TData = Awaited<ReturnType<typeof listCollectionCards>>, TError = ProblemDetails>(
  collectionId: string,
     params: undefined |  ListCollectionCardsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCollectionCards>>, TError, TData>> & Pick<
@@ -592,6 +591,11 @@ export function useListCollectionCards<TData = Awaited<ReturnType<typeof listCol
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Sorted by card name (ascending). `take` 1–200 (default 50). `skip` for paging.
+ * Response includes `total`.
+ * @summary List the cards in a collection.
+ */
 export function useListCollectionCards<TData = Awaited<ReturnType<typeof listCollectionCards>>, TError = ProblemDetails>(
  collectionId: string,
     params?: ListCollectionCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCollectionCards>>, TError, TData>> & Pick<
@@ -603,15 +607,21 @@ export function useListCollectionCards<TData = Awaited<ReturnType<typeof listCol
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Sorted by card name (ascending). `take` 1–200 (default 50). `skip` for paging.
+ * Response includes `total`.
+ * @summary List the cards in a collection.
+ */
 export function useListCollectionCards<TData = Awaited<ReturnType<typeof listCollectionCards>>, TError = ProblemDetails>(
  collectionId: string,
     params?: ListCollectionCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCollectionCards>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Sorted by card name (ascending). `take` 1–200 (default 50). `skip` for paging.
+ * Response includes `total`.
  * @summary List the cards in a collection.
  */
-
 export function useListCollectionCards<TData = Awaited<ReturnType<typeof listCollectionCards>>, TError = ProblemDetails>(
  collectionId: string,
     params?: ListCollectionCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCollectionCards>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
@@ -705,9 +715,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateCollectionCardMutationError = ProblemDetails
     export type CreateCollectionCardMutationVariables = {collectionId: string;data: AddCardToCollectionRequest}
 
-    /**
- * @summary Add a card to a collection (manual, no scan).
- */
+    /** @summary Add a card to a collection (manual, no scan). */
 export const useCreateCollectionCard = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCollectionCard>>, TError,CreateCollectionCardMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -780,9 +788,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteCollectionCardMutationError = ProblemDetails
     export type DeleteCollectionCardMutationVariables = {collectionId: string;instanceId: string}
 
-    /**
- * @summary Remove a card from a collection.
- */
+    /** @summary Remove a card from a collection. */
 export const useDeleteCollectionCard = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCollectionCard>>, TError,DeleteCollectionCardMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -870,9 +876,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type MoveCardMutationError = ProblemDetails
     export type MoveCardMutationVariables = {collectionId: string;instanceId: string;data: MoveCardRequest}
 
-    /**
- * @summary Move a card to another collection.
- */
+    /** @summary Move a card to another collection. */
 export const useMoveCard = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveCard>>, TError,MoveCardMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -964,6 +968,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type BulkAddCardsMutationVariables = {collectionId: string;data: BulkAddCardsRequest}
 
     /**
+ * Body: `{ items: [{ printingId, isFoil?, language?, condition?, count? }] }`.
+ * Per-item `count` is clamped to 1..50; total instances per call capped at 500.
+ * Returns the newly-created `CardInstanceDto` rows in the same order they
+ * were generated. Validates every `printingId` up front — if any is unknown the
+ * whole call is rejected with `400`, no partial writes.
  * @summary Add many cards to a collection in one call.
  */
 export const useBulkAddCards = <TError = ProblemDetails,
@@ -1054,6 +1063,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type BulkRemoveCardsMutationVariables = {collectionId: string;data: BulkRemoveCardsRequest}
 
     /**
+ * Body: `{ instanceIds: [...] }`. Idempotent on missing ids — returns
+ * `{ removedCount, missingCount }` so the client can tell the user what landed.
  * @summary Remove many cards from a collection in one call.
  */
 export const useBulkRemoveCards = <TError = ProblemDetails,
@@ -1145,6 +1156,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type BulkMoveCardsMutationVariables = {collectionId: string;data: BulkMoveCardsRequest}
 
     /**
+ * Body: `{ instanceIds: [...], toCollectionId }`. Both source and destination
+ * must exist and belong to the caller. Returns the moved instances (now with
+ * the destination collection set) plus a count of ids that weren't in the source.
  * @summary Move many cards to another collection in one call.
  */
 export const useBulkMoveCards = <TError = ProblemDetails,

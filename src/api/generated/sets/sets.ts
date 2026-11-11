@@ -119,6 +119,17 @@ export type ListSetsQueryResult = NonNullable<Awaited<ReturnType<typeof listSets
 export type ListSetsQueryError = ProblemDetails
 
 
+/**
+ * Returns paginated set metadata. Use this to power a set picker (the `?set=`
+ * filter on `GET /cards` takes the same `code` returned here).
+ *
+ * `setType` filters by Scryfall set type (`core`, `expansion`, `masters`,
+ * `commander`, `funny`, …).
+ * `sort` ∈ `releasedAt|code|name`, default `releasedAt`.
+ * `order` ∈ `asc|desc`, default `desc` (newest first).
+ * `take` 1–200 (default 50). `skip` for paging.
+ * @summary Browse the catalog of Magic sets.
+ */
 export function useListSets<TData = Awaited<ReturnType<typeof listSets>>, TError = ProblemDetails>(
  params: undefined |  ListSetsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSets>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -129,6 +140,17 @@ export function useListSets<TData = Awaited<ReturnType<typeof listSets>>, TError
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns paginated set metadata. Use this to power a set picker (the `?set=`
+ * filter on `GET /cards` takes the same `code` returned here).
+ *
+ * `setType` filters by Scryfall set type (`core`, `expansion`, `masters`,
+ * `commander`, `funny`, …).
+ * `sort` ∈ `releasedAt|code|name`, default `releasedAt`.
+ * `order` ∈ `asc|desc`, default `desc` (newest first).
+ * `take` 1–200 (default 50). `skip` for paging.
+ * @summary Browse the catalog of Magic sets.
+ */
 export function useListSets<TData = Awaited<ReturnType<typeof listSets>>, TError = ProblemDetails>(
  params?: ListSetsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSets>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -139,14 +161,32 @@ export function useListSets<TData = Awaited<ReturnType<typeof listSets>>, TError
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns paginated set metadata. Use this to power a set picker (the `?set=`
+ * filter on `GET /cards` takes the same `code` returned here).
+ *
+ * `setType` filters by Scryfall set type (`core`, `expansion`, `masters`,
+ * `commander`, `funny`, …).
+ * `sort` ∈ `releasedAt|code|name`, default `releasedAt`.
+ * `order` ∈ `asc|desc`, default `desc` (newest first).
+ * `take` 1–200 (default 50). `skip` for paging.
+ * @summary Browse the catalog of Magic sets.
+ */
 export function useListSets<TData = Awaited<ReturnType<typeof listSets>>, TError = ProblemDetails>(
  params?: ListSetsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSets>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Returns paginated set metadata. Use this to power a set picker (the `?set=`
+ * filter on `GET /cards` takes the same `code` returned here).
+ *
+ * `setType` filters by Scryfall set type (`core`, `expansion`, `masters`,
+ * `commander`, `funny`, …).
+ * `sort` ∈ `releasedAt|code|name`, default `releasedAt`.
+ * `order` ∈ `asc|desc`, default `desc` (newest first).
+ * `take` 1–200 (default 50). `skip` for paging.
  * @summary Browse the catalog of Magic sets.
  */
-
 export function useListSets<TData = Awaited<ReturnType<typeof listSets>>, TError = ProblemDetails>(
  params?: ListSetsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSets>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
@@ -220,6 +260,10 @@ export type GetSetQueryResult = NonNullable<Awaited<ReturnType<typeof getSet>>>
 export type GetSetQueryError = ProblemDetails
 
 
+/**
+ * Returns set metadata plus a presigned URL for the set icon (if cached locally).
+ * @summary Get one set by its lower-case code.
+ */
 export function useGetSet<TData = Awaited<ReturnType<typeof getSet>>, TError = ProblemDetails>(
  code: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSet>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -230,6 +274,10 @@ export function useGetSet<TData = Awaited<ReturnType<typeof getSet>>, TError = P
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns set metadata plus a presigned URL for the set icon (if cached locally).
+ * @summary Get one set by its lower-case code.
+ */
 export function useGetSet<TData = Awaited<ReturnType<typeof getSet>>, TError = ProblemDetails>(
  code: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSet>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -240,14 +288,18 @@ export function useGetSet<TData = Awaited<ReturnType<typeof getSet>>, TError = P
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns set metadata plus a presigned URL for the set icon (if cached locally).
+ * @summary Get one set by its lower-case code.
+ */
 export function useGetSet<TData = Awaited<ReturnType<typeof getSet>>, TError = ProblemDetails>(
  code: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSet>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Returns set metadata plus a presigned URL for the set icon (if cached locally).
  * @summary Get one set by its lower-case code.
  */
-
 export function useGetSet<TData = Awaited<ReturnType<typeof getSet>>, TError = ProblemDetails>(
  code: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSet>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient

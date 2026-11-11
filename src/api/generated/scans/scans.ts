@@ -101,6 +101,14 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateScanMutationVariables = {data: CreateScanBody}
 
     /**
+ * Multipart upload — send the photo as a `multipart/form-data` field named `image`
+ * (jpeg, ≤4 MB). The backend runs perceptual-hash matching against the local Scryfall
+ * art-crop index AND OCR via FlorenceApi in parallel, then fuses the two signals into
+ * a confidence-ranked list of `CardCandidate` objects.
+ *
+ * The `confidence` field (`high|medium|low`) drives the mobile UX: HIGH auto-adds the
+ * top candidate to the active selection; MEDIUM offers a disambiguation picker; LOW
+ * falls back to manual lookup.
  * @summary Recognize a Magic card from a photo.
  */
 export const useCreateScan = <TError = ProblemDetails,
@@ -197,6 +205,14 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type SubmitScanFeedbackMutationVariables = {scanId: string;data: ScanFeedbackRequest}
 
     /**
+ * Tells the API which printing the user actually wanted from a scan referenced
+ * by `scanId` (returned in `POST /scans`). The response reports the 1-based
+ * `rank` of that printing in the original candidate list, or `null` when the
+ * printing wasn't in the pool at all.
+ *
+ * The submission is persisted on the scan record and accumulates as training
+ * data for future ranker work. Submitting a second time overwrites the prior
+ * feedback — assume the latest is the user's most considered answer.
  * @summary Report the actual correct printing for a previous scan.
  */
 export const useSubmitScanFeedback = <TError = ProblemDetails,

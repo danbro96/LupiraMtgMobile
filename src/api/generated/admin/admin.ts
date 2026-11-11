@@ -120,6 +120,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
     /**
+ * Runs the same Scryfall sync the cron-scheduled job runs, in-process, and returns the
+ * completed report. The first call against an empty database can take several hours
+ * (downloading and pHashing every printing); subsequent calls only download new printings.
+ *
+ * This endpoint is auth-gated; in production it should be restricted further (admin role)
+ * once roles are introduced.
  * @summary Trigger a Scryfall sync run synchronously.
  */
 export const useRunSync = <TError = ProblemDetails,
@@ -190,6 +196,12 @@ export type ListSetTypeWeightsQueryResult = NonNullable<Awaited<ReturnType<typeo
 export type ListSetTypeWeightsQueryError = ProblemDetails
 
 
+/**
+ * The scan ranker biases candidates by their printing's set type — e.g. weighting
+ * core/expansion above commander/funny so a Lightning Bolt scan prefers the M21
+ * printing over a Funko Pop one. This endpoint exposes the live values.
+ * @summary List set-type weights used by the scan-confidence ranker.
+ */
 export function useListSetTypeWeights<TData = Awaited<ReturnType<typeof listSetTypeWeights>>, TError = ProblemDetails>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSetTypeWeights>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -200,6 +212,12 @@ export function useListSetTypeWeights<TData = Awaited<ReturnType<typeof listSetT
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * The scan ranker biases candidates by their printing's set type — e.g. weighting
+ * core/expansion above commander/funny so a Lightning Bolt scan prefers the M21
+ * printing over a Funko Pop one. This endpoint exposes the live values.
+ * @summary List set-type weights used by the scan-confidence ranker.
+ */
 export function useListSetTypeWeights<TData = Awaited<ReturnType<typeof listSetTypeWeights>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSetTypeWeights>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -210,14 +228,22 @@ export function useListSetTypeWeights<TData = Awaited<ReturnType<typeof listSetT
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * The scan ranker biases candidates by their printing's set type — e.g. weighting
+ * core/expansion above commander/funny so a Lightning Bolt scan prefers the M21
+ * printing over a Funko Pop one. This endpoint exposes the live values.
+ * @summary List set-type weights used by the scan-confidence ranker.
+ */
 export function useListSetTypeWeights<TData = Awaited<ReturnType<typeof listSetTypeWeights>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSetTypeWeights>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * The scan ranker biases candidates by their printing's set type — e.g. weighting
+ * core/expansion above commander/funny so a Lightning Bolt scan prefers the M21
+ * printing over a Funko Pop one. This endpoint exposes the live values.
  * @summary List set-type weights used by the scan-confidence ranker.
  */
-
 export function useListSetTypeWeights<TData = Awaited<ReturnType<typeof listSetTypeWeights>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSetTypeWeights>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
@@ -316,6 +342,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateSetTypeWeightMutationVariables = {setType: string;data: UpdateSetTypeWeightRequest}
 
     /**
+ * Body: `{ weight: number }`. Weight must be finite and non-negative; 1.0 is the
+ * neutral baseline, < 1 down-weights, > 1 up-weights. New `setType` keys are created
+ * on the fly so you don't have to pre-seed.
+ *
+ * The change takes effect on the *next* scan; the ranker reads weights per request.
  * @summary Upsert the weight for one set type.
  */
 export const useUpdateSetTypeWeight = <TError = ProblemDetails,

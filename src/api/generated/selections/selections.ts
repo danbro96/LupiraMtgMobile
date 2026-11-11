@@ -115,9 +115,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateSelectionMutationError = ProblemDetails
 
 
-    /**
- * @summary Start a new scanning selection.
- */
+    /** @summary Start a new scanning selection. */
 export const useCreateSelection = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSelection>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -183,6 +181,7 @@ export type GetSelectionQueryResult = NonNullable<Awaited<ReturnType<typeof getS
 export type GetSelectionQueryError = ProblemDetails
 
 
+/** @summary Get a selection with its current cards. */
 export function useGetSelection<TData = Awaited<ReturnType<typeof getSelection>>, TError = ProblemDetails>(
  selectionId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSelection>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -193,6 +192,7 @@ export function useGetSelection<TData = Awaited<ReturnType<typeof getSelection>>
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Get a selection with its current cards. */
 export function useGetSelection<TData = Awaited<ReturnType<typeof getSelection>>, TError = ProblemDetails>(
  selectionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSelection>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -203,14 +203,12 @@ export function useGetSelection<TData = Awaited<ReturnType<typeof getSelection>>
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Get a selection with its current cards. */
 export function useGetSelection<TData = Awaited<ReturnType<typeof getSelection>>, TError = ProblemDetails>(
  selectionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSelection>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get a selection with its current cards.
- */
-
+/** @summary Get a selection with its current cards. */
 export function useGetSelection<TData = Awaited<ReturnType<typeof getSelection>>, TError = ProblemDetails>(
  selectionId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSelection>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
@@ -303,9 +301,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateSelectionCardMutationError = ProblemDetails
     export type CreateSelectionCardMutationVariables = {selectionId: string;data: AddSelectionEntryRequest}
 
-    /**
- * @summary Add a recognized card to the selection. Returns 409 on duplicate unless allowDuplicate=true.
- */
+    /** @summary Add a recognized card to the selection. Returns 409 on duplicate unless allowDuplicate=true. */
 export const useCreateSelectionCard = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSelectionCard>>, TError,CreateSelectionCardMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -378,9 +374,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteSelectionCardMutationError = ProblemDetails
     export type DeleteSelectionCardMutationVariables = {selectionId: string;instanceId: string}
 
-    /**
- * @summary Remove a card from the selection.
- */
+    /** @summary Remove a card from the selection. */
 export const useDeleteSelectionCard = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSelectionCard>>, TError,DeleteSelectionCardMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -466,9 +460,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CommitSelectionMutationError = ProblemDetails
     export type CommitSelectionMutationVariables = {selectionId: string;data: CommitSelectionRequest}
 
-    /**
- * @summary Commit selection cards into a collection.
- */
+    /** @summary Commit selection cards into a collection. */
 export const useCommitSelection = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof commitSelection>>, TError,CommitSelectionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient): UseMutationResult<

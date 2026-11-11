@@ -111,6 +111,13 @@ export type WhoAmIQueryResult = NonNullable<Awaited<ReturnType<typeof whoAmI>>>
 export type WhoAmIQueryError = ProblemDetails
 
 
+/**
+ * Projects the validated Authentik access token's claims: `subject` (the caller's
+ * email — the identity that owns collections/selections/scans), `displayName` (the
+ * `name` claim), and `isAdmin` (derived from the `groups` claim). Useful as a token
+ * sanity-check from the mobile client on cold start.
+ * @summary Return the caller's identity.
+ */
 export function useWhoAmI<TData = Awaited<ReturnType<typeof whoAmI>>, TError = ProblemDetails>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof whoAmI>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -121,6 +128,13 @@ export function useWhoAmI<TData = Awaited<ReturnType<typeof whoAmI>>, TError = P
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Projects the validated Authentik access token's claims: `subject` (the caller's
+ * email — the identity that owns collections/selections/scans), `displayName` (the
+ * `name` claim), and `isAdmin` (derived from the `groups` claim). Useful as a token
+ * sanity-check from the mobile client on cold start.
+ * @summary Return the caller's identity.
+ */
 export function useWhoAmI<TData = Awaited<ReturnType<typeof whoAmI>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof whoAmI>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -131,14 +145,24 @@ export function useWhoAmI<TData = Awaited<ReturnType<typeof whoAmI>>, TError = P
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Projects the validated Authentik access token's claims: `subject` (the caller's
+ * email — the identity that owns collections/selections/scans), `displayName` (the
+ * `name` claim), and `isAdmin` (derived from the `groups` claim). Useful as a token
+ * sanity-check from the mobile client on cold start.
+ * @summary Return the caller's identity.
+ */
 export function useWhoAmI<TData = Awaited<ReturnType<typeof whoAmI>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof whoAmI>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Projects the validated Authentik access token's claims: `subject` (the caller's
+ * email — the identity that owns collections/selections/scans), `displayName` (the
+ * `name` claim), and `isAdmin` (derived from the `groups` claim). Useful as a token
+ * sanity-check from the mobile client on cold start.
  * @summary Return the caller's identity.
  */
-
 export function useWhoAmI<TData = Awaited<ReturnType<typeof whoAmI>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof whoAmI>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
@@ -220,6 +244,11 @@ export type ListMeCardsQueryResult = NonNullable<Awaited<ReturnType<typeof listM
 export type ListMeCardsQueryError = ProblemDetails
 
 
+/**
+ * Sorted by card name (ascending). `take` 1–200 (default 50). `skip` for paging.
+ * Response includes `total` so the client can render "X of Y" headers.
+ * @summary List every card the caller owns across all collections.
+ */
 export function useListMeCards<TData = Awaited<ReturnType<typeof listMeCards>>, TError = ProblemDetails>(
  params: undefined |  ListMeCardsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMeCards>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -230,6 +259,11 @@ export function useListMeCards<TData = Awaited<ReturnType<typeof listMeCards>>, 
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Sorted by card name (ascending). `take` 1–200 (default 50). `skip` for paging.
+ * Response includes `total` so the client can render "X of Y" headers.
+ * @summary List every card the caller owns across all collections.
+ */
 export function useListMeCards<TData = Awaited<ReturnType<typeof listMeCards>>, TError = ProblemDetails>(
  params?: ListMeCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMeCards>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -240,14 +274,20 @@ export function useListMeCards<TData = Awaited<ReturnType<typeof listMeCards>>, 
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Sorted by card name (ascending). `take` 1–200 (default 50). `skip` for paging.
+ * Response includes `total` so the client can render "X of Y" headers.
+ * @summary List every card the caller owns across all collections.
+ */
 export function useListMeCards<TData = Awaited<ReturnType<typeof listMeCards>>, TError = ProblemDetails>(
  params?: ListMeCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMeCards>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Sorted by card name (ascending). `take` 1–200 (default 50). `skip` for paging.
+ * Response includes `total` so the client can render "X of Y" headers.
  * @summary List every card the caller owns across all collections.
  */
-
 export function useListMeCards<TData = Awaited<ReturnType<typeof listMeCards>>, TError = ProblemDetails>(
  params?: ListMeCardsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMeCards>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
@@ -330,6 +370,12 @@ export type ListScansQueryResult = NonNullable<Awaited<ReturnType<typeof listSca
 export type ListScansQueryError = ProblemDetails
 
 
+/**
+ * Returns the caller's recent scans with the top match hydrated for each. `take` is
+ * 1–100 (default 25); `skip` for paging. Use `GET /me/scans/{scanId}` for the full
+ * ScanLog projection (every candidate, OCR zones, set-symbol detection, feedback).
+ * @summary Paginated scan history (newest first).
+ */
 export function useListScans<TData = Awaited<ReturnType<typeof listScans>>, TError = ProblemDetails>(
  params: undefined |  ListScansParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listScans>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -340,6 +386,12 @@ export function useListScans<TData = Awaited<ReturnType<typeof listScans>>, TErr
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns the caller's recent scans with the top match hydrated for each. `take` is
+ * 1–100 (default 25); `skip` for paging. Use `GET /me/scans/{scanId}` for the full
+ * ScanLog projection (every candidate, OCR zones, set-symbol detection, feedback).
+ * @summary Paginated scan history (newest first).
+ */
 export function useListScans<TData = Awaited<ReturnType<typeof listScans>>, TError = ProblemDetails>(
  params?: ListScansParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listScans>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -350,14 +402,22 @@ export function useListScans<TData = Awaited<ReturnType<typeof listScans>>, TErr
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns the caller's recent scans with the top match hydrated for each. `take` is
+ * 1–100 (default 25); `skip` for paging. Use `GET /me/scans/{scanId}` for the full
+ * ScanLog projection (every candidate, OCR zones, set-symbol detection, feedback).
+ * @summary Paginated scan history (newest first).
+ */
 export function useListScans<TData = Awaited<ReturnType<typeof listScans>>, TError = ProblemDetails>(
  params?: ListScansParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listScans>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Returns the caller's recent scans with the top match hydrated for each. `take` is
+ * 1–100 (default 25); `skip` for paging. Use `GET /me/scans/{scanId}` for the full
+ * ScanLog projection (every candidate, OCR zones, set-symbol detection, feedback).
  * @summary Paginated scan history (newest first).
  */
-
 export function useListScans<TData = Awaited<ReturnType<typeof listScans>>, TError = ProblemDetails>(
  params?: ListScansParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listScans>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
@@ -434,6 +494,13 @@ export type GetScanQueryResult = NonNullable<Awaited<ReturnType<typeof getScan>>
 export type GetScanQueryError = ProblemDetails
 
 
+/**
+ * Returns every candidate (hydrated with the printing's metadata + presigned image),
+ * the OCR zone texts, the set-symbol detection if any, the originally captured image
+ * (presigned URL, 15-min TTL) when retained, and feedback if submitted. Useful for
+ * a "why did the scan match this card?" diagnostic UI without needing OpenObserve.
+ * @summary Full detail of one scan.
+ */
 export function useGetScan<TData = Awaited<ReturnType<typeof getScan>>, TError = ProblemDetails>(
  scanId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getScan>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -444,6 +511,13 @@ export function useGetScan<TData = Awaited<ReturnType<typeof getScan>>, TError =
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns every candidate (hydrated with the printing's metadata + presigned image),
+ * the OCR zone texts, the set-symbol detection if any, the originally captured image
+ * (presigned URL, 15-min TTL) when retained, and feedback if submitted. Useful for
+ * a "why did the scan match this card?" diagnostic UI without needing OpenObserve.
+ * @summary Full detail of one scan.
+ */
 export function useGetScan<TData = Awaited<ReturnType<typeof getScan>>, TError = ProblemDetails>(
  scanId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getScan>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -454,14 +528,24 @@ export function useGetScan<TData = Awaited<ReturnType<typeof getScan>>, TError =
       >, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns every candidate (hydrated with the printing's metadata + presigned image),
+ * the OCR zone texts, the set-symbol detection if any, the originally captured image
+ * (presigned URL, 15-min TTL) when retained, and feedback if submitted. Useful for
+ * a "why did the scan match this card?" diagnostic UI without needing OpenObserve.
+ * @summary Full detail of one scan.
+ */
 export function useGetScan<TData = Awaited<ReturnType<typeof getScan>>, TError = ProblemDetails>(
  scanId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getScan>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Returns every candidate (hydrated with the printing's metadata + presigned image),
+ * the OCR zone texts, the set-symbol detection if any, the originally captured image
+ * (presigned URL, 15-min TTL) when retained, and feedback if submitted. Useful for
+ * a "why did the scan match this card?" diagnostic UI without needing OpenObserve.
  * @summary Full detail of one scan.
  */
-
 export function useGetScan<TData = Awaited<ReturnType<typeof getScan>>, TError = ProblemDetails>(
  scanId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getScan>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
