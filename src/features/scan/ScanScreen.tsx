@@ -1,7 +1,6 @@
 import React, { useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
 import {
   AppState,
-  AppStateStatus,
   LayoutChangeEvent,
   Pressable,
   StyleSheet,
@@ -71,7 +70,7 @@ export function ScanScreen() {
   const themed = makeStyles(c);
   const confirm = useConfirm();
   const isFocused = useIsFocused();
-  const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
+  const [appState, setAppState] = useState(AppState.currentState);
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next) => {
       breadcrumb('appstate', 'transition', { from: AppState.currentState, to: next });

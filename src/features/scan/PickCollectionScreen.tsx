@@ -93,7 +93,7 @@ export function PickCollectionScreen() {
         )}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          collections.isLoading ? null : (
+          collections.isLoading ? undefined : (
             <Text variant="bodyMedium" style={styles.emptyText}>No collections yet — create one above.</Text>
           )
         }

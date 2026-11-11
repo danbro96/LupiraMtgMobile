@@ -150,9 +150,9 @@ export function SelectionScreen() {
               </Text>
               <Text variant="bodySmall" style={styles.subtitle}>Tap a card to change its printing.</Text>
             </View>
-          ) : null
+          ) : undefined
         }
-        ListEmptyComponent={selection.isLoading ? null : <Empty styles={styles} palette={c} />}
+        ListEmptyComponent={selection.isLoading ? undefined : <Empty styles={styles} palette={c} />}
         contentContainerStyle={[styles.list, isEmpty && styles.listEmpty]}
       />
 
