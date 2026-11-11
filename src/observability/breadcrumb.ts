@@ -13,7 +13,8 @@ export type BreadcrumbCategory =
   | 'frame_processor'
   | 'navigation'
   | 'auth'
-  | 'selection';
+  | 'selection'
+  | 'settings';
 
 type Level = 'debug' | 'info' | 'warning' | 'error';
 

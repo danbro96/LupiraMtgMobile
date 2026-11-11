@@ -2,14 +2,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // The session mechanics are covered in @danbro96/lupira-expo-oidc; these pin what MTG adds on top.
 const secure = vi.hoisted(() => new Map<string, string>());
+const refusedDeletes = vi.hoisted(() => new Set<string>());
 vi.mock('expo-secure-store', () => ({
   getItemAsync: vi.fn(async (k: string) => secure.get(k) ?? null),
   setItemAsync: vi.fn(async (k: string, v: string) => void secure.set(k, v)),
-  deleteItemAsync: vi.fn(async (k: string) => void secure.delete(k)),
+  deleteItemAsync: vi.fn(async (k: string) => {
+    if (refusedDeletes.has(k)) throw new Error('keystore refused delete');
+    secure.delete(k);
+  }),
 }));
 vi.mock('react-native', () => ({ AppState: {} }));
 vi.mock('expo-auth-session', () => ({}));
-vi.mock('@sentry/react-native', () => ({ setUser: vi.fn(), captureMessage: vi.fn() }));
+vi.mock('@sentry/react-native', () => ({ setUser: vi.fn(), captureMessage: vi.fn(), addBreadcrumb: vi.fn() }));
 vi.mock('../auth/oidc', () => ({ oidc: { refreshTokens: vi.fn() } }));
 vi.mock('../auth/authDebug', () => ({ logAuth: vi.fn() }));
 
@@ -29,6 +33,7 @@ const tokensFor = (email: string, groups: string[] = []) => ({
 beforeEach(async () => {
   vi.clearAllMocks();
   secure.clear();
+  refusedDeletes.clear();
   await useAuth.getState().clearSession();
   useSelection.setState({ currentSelectionId: null, lastCollectionId: null });
 });
@@ -64,6 +69,21 @@ describe('sign-in', () => {
     await useAuth.getState().clearSession();
     await useAuth.getState().signIn(tokensFor('b@x'));
     expect(useSelection.getState()).toMatchObject({ currentSelectionId: null, lastCollectionId: null });
+  });
+
+  it('signs in another account when the keystore refuses to delete the selection', async () => {
+    await useAuth.getState().signIn(tokensFor('a@x'));
+    await useAuth.getState().clearSession();
+    useSelection.setState({ currentSelectionId: 's-1', lastCollectionId: 'c-1' });
+    refusedDeletes.add('lupira.mtg.currentSelectionId');
+
+    await useAuth.getState().signIn(tokensFor('b@x'));
+
+    expect(useAuth.getState().user).toMatchObject({ sub: 'b@x' });
+    expect(useSelection.getState()).toMatchObject({ currentSelectionId: null, lastCollectionId: null });
+    expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
+      expect.objectContaining({ category: 'selection', message: 'persist-error', level: 'warning' }),
+    );
   });
 });
 

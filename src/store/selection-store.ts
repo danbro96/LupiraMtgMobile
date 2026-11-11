@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import { deleteOrLog } from './deleteOrLog';
 
 const KEY_CURRENT_SELECTION = 'lupira.mtg.currentSelectionId';
 const KEY_LAST_COLLECTION = 'lupira.mtg.lastCollectionId';
@@ -45,6 +46,6 @@ async function persist(key: string, value: string | null): Promise<void> {
   if (value) {
     await SecureStore.setItemAsync(key, value);
   } else {
-    await SecureStore.deleteItemAsync(key);
+    await deleteOrLog(key, 'selection');
   }
 }

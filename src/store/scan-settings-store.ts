@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import { deleteOrLog } from './deleteOrLog';
 
 const KEY_AUTO = 'lupira.scan.autoCapture';
 const KEY_THRESHOLD = 'lupira.scan.captureThreshold';
@@ -147,14 +148,14 @@ export const useScanSettings = create<ScanSettings & Actions>((set, get) => ({
 
   resetToDefaults: async () => {
     await Promise.all([
-      SecureStore.deleteItemAsync(KEY_AUTO),
-      SecureStore.deleteItemAsync(KEY_THRESHOLD),
-      SecureStore.deleteItemAsync(KEY_MIN_FRAMES),
-      SecureStore.deleteItemAsync(KEY_W_STABILITY),
-      SecureStore.deleteItemAsync(KEY_W_SHARPNESS),
-      SecureStore.deleteItemAsync(KEY_W_COVERAGE),
-      SecureStore.deleteItemAsync(KEY_W_BRIGHTNESS),
-      SecureStore.deleteItemAsync(KEY_DEBUG),
+      deleteOrLog(KEY_AUTO, 'settings'),
+      deleteOrLog(KEY_THRESHOLD, 'settings'),
+      deleteOrLog(KEY_MIN_FRAMES, 'settings'),
+      deleteOrLog(KEY_W_STABILITY, 'settings'),
+      deleteOrLog(KEY_W_SHARPNESS, 'settings'),
+      deleteOrLog(KEY_W_COVERAGE, 'settings'),
+      deleteOrLog(KEY_W_BRIGHTNESS, 'settings'),
+      deleteOrLog(KEY_DEBUG, 'settings'),
     ]);
     set({
       autoCaptureEnabled: DEFAULT_AUTO,
