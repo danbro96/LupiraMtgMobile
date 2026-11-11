@@ -61,7 +61,8 @@
         {
           "url": "https://de.sentry.io/",
           "project": "lupira-mtg",
-          "organization": "brostrom"
+          "organization": "brostrom",
+          "experimental_android": { "enableAndroidGradlePlugin": true }
         }
       ],
       "expo-image"
