@@ -59,7 +59,7 @@ npm run fetch:openapi -- https://mtg-api.lupira.com/openapi/v1.json   # or from 
 
 ## Builds
 
-EAS profiles (`eas.json`): `development` (dev client, APK), `preview` (internal APK), `production` (AAB, auto-increment). OTA via `expo-updates`, `runtimeVersion` = fingerprint. Errors/replays → Sentry (`brostrom/lupira-mtg`, de region).
+EAS profiles (`eas.json`): `development` (dev client, APK), `preview` (internal APK), `production` (AAB, auto-increment); each reads the EAS environment of the same name. OTA via `expo-updates`, `runtimeVersion` = fingerprint. Errors/replays → Sentry (`brostrom/lupira-mtg`, de region).
 
 Release builds run R8. The `@sentry/react-native/expo` plugin's Gradle plugin uploads the R8 mapping and source maps from each EAS build (`SENTRY_AUTH_TOKEN` in the EAS environment).
 

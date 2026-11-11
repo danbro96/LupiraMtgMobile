@@ -3,6 +3,20 @@ name: mobile-release
 on:
   push:
     branches: [release/android]
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - App.tsx
+      - index.ts
+      - app.json
+      - eas.json
+      - babel.config.js
+      - metro.config.js
+      - package.json
+      - package-lock.json
+      - .node-version
+      - .npmrc
+      - .github/workflows/mobile-release.yml
 
 concurrency:
   group: mobile-release

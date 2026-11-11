@@ -14,7 +14,8 @@ EAS build → Play Console internal testing. Package `com.lupira.mtg`, project
 
 Push to `release/android` (`.github/workflows/mobile-release.yml`): typecheck + tests → `eas build
 --profile production --auto-submit` to the Play internal track → tag
-`android/v<version>+<versionCode>`.
+`android/v<version>+<versionCode>`. A push builds only when it changes app sources, assets, Expo/EAS/
+Babel/Metro config, `package.json`, the lockfile, `.node-version` or `.npmrc`.
 
 ```bash
 git push origin main:release/android
